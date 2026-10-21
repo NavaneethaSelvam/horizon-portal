@@ -1,32 +1,40 @@
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.*
+
 # Next.js
 /.next/
 /out/
-# production
+
+# Production
 /build
-# local environment files
+
+# Local environment files
 .env
 .env.*
 !.env.example
-# logs
+
+# Logs
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
-# OS/editor
+
+# OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# Local SQLite databases
+# Local SQLite databases and backups
 /prisma/*.db
-/prisma/*.db-journal
+/prisma/*.db-*
+/prisma/*.backup.db
+/prisma/*.db.backup
 
 # Local application logs
 next-startup.log

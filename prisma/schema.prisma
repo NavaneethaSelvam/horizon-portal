@@ -234,12 +234,14 @@ model Client {
 }
 
 model DemoUser {
-  username      String @id
+  username      String  @id
   label         String?
   employee_id   String?
   full_name     String?
   role          String?
   password_hash String
+  is_active     Boolean @default(true)
+
   @@map("demo_users")
 }
 
