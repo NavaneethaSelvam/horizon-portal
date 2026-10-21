@@ -1,0 +1,212 @@
+[
+ {
+  "faq_id": "FAQ-01",
+  "question": "How many casual leaves do I get?",
+  "answer": "12 days per financial year, prorated for joiners.",
+  "category": "Leave",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-02",
+  "question": "How many sick leaves do I get?",
+  "answer": "12 days per financial year. A medical certificate is needed beyond 2 days.",
+  "category": "Leave",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-03",
+  "question": "How does earned leave work?",
+  "answer": "It accrues at 1.25 days per month and up to 30 days can be carried forward.",
+  "category": "Leave",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-04",
+  "question": "Is leave without pay allowed?",
+  "answer": "Yes, when other balances are exhausted. It is deducted on a calendar-day basis.",
+  "category": "Leave",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-05",
+  "question": "What is the maternity leave policy?",
+  "answer": "26 weeks of paid maternity leave as per statute.",
+  "category": "Leave",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-06",
+  "question": "What are the office hours?",
+  "answer": "9:00 to 18:00, Monday to Friday. Core hours are 11:00 to 16:00.",
+  "category": "Working time",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-07",
+  "question": "Do we have to work on Saturdays?",
+  "answer": "No. Saturday and Sunday are weekly offs.",
+  "category": "Working time",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-08",
+  "question": "How does overtime pay work?",
+  "answer": "Eligible roles (L1-L2 in Support, HR, Finance, Operations) get 2x hourly pay, capped at 50 hours a month.",
+  "category": "Pay",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-09",
+  "question": "When is salary paid?",
+  "answer": "On the first working day of the following month.",
+  "category": "Pay",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-10",
+  "question": "How is LOP calculated?",
+  "answer": "Monthly fixed pay divided by calendar days, multiplied by days without pay.",
+  "category": "Pay",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-11",
+  "question": "When is the performance bonus paid?",
+  "answer": "With the April payroll, based on the latest appraisal rating, for employees with 12 months of service.",
+  "category": "Pay",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-12",
+  "question": "How often are salaries revised?",
+  "answer": "Annually from 1 April, based on the appraisal rating. Promotions can happen at the same time.",
+  "category": "Pay",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-13",
+  "question": "How is PF calculated?",
+  "answer": "12% of basic, with a wage ceiling of 15,000 basic per month, from employee and employer.",
+  "category": "Statutory",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-14",
+  "question": "Who is covered by ESI?",
+  "answer": "Employees whose monthly fixed gross is 21,000 or less.",
+  "category": "Statutory",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-15",
+  "question": "What is professional tax?",
+  "answer": "A state tax of 200 per month for employees earning 25,000 or more a month (sample rule).",
+  "category": "Statutory",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-16",
+  "question": "How is TDS decided?",
+  "answer": "On projected annual income using the slabs shown in the Tax screen, spread across 12 months.",
+  "category": "Statutory",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-17",
+  "question": "When do I get Form 16?",
+  "answer": "After the financial year closes, usually by mid June.",
+  "category": "Statutory",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-18",
+  "question": "How long is the notice period?",
+  "answer": "30 days for L1-L2, 60 days for L3, 90 days for L4 and above.",
+  "category": "Exit",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-19",
+  "question": "Can I buy out my notice period?",
+  "answer": "Yes, with manager and HR approval, by paying the shortfall in notice pay.",
+  "category": "Exit",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-20",
+  "question": "What is the probation period?",
+  "answer": "Six months, reviewed by manager and HR.",
+  "category": "Policy",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-21",
+  "question": "What is the work from home policy?",
+  "answer": "Hybrid, about three office days a week for most roles. Some roles are fully remote.",
+  "category": "Policy",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-22",
+  "question": "How do I claim travel expenses?",
+  "answer": "Submit bills within 30 days in the Expenses screen.",
+  "category": "Expenses",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-23",
+  "question": "Who approves my expenses?",
+  "answer": "Your head of department approves; Finance pays in the next cycle.",
+  "category": "Expenses",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-24",
+  "question": "What insurance do I have?",
+  "answer": "Group health cover for you, spouse and up to two children.",
+  "category": "Benefits",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-25",
+  "question": "How do I add a dependent to insurance?",
+  "answer": "Within 30 days of joining or a life event, through the Benefits screen.",
+  "category": "Benefits",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-26",
+  "question": "What training is available?",
+  "answer": "Each employee gets a learning budget and access to the online library; target is 24 hours a year.",
+  "category": "Benefits",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-27",
+  "question": "How do I update my bank details?",
+  "answer": "Raise a request in the Profile screen; HR verifies within 3 working days.",
+  "category": "Admin",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-28",
+  "question": "Who do I contact for payroll queries?",
+  "answer": "payroll@znova-demo.example",
+  "category": "Contacts",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-29",
+  "question": "What is the dress code?",
+  "answer": "Business casual; smart casual on Fridays.",
+  "category": "Policy",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ },
+ {
+  "faq_id": "FAQ-30",
+  "question": "How are holidays decided?",
+  "answer": "A calendar is published every January with national and regional holidays.",
+  "category": "Policy",
+  "policy_source": "Zenith Nova HR Policy Handbook v3.2 (fictional, for training)"
+ }
+]

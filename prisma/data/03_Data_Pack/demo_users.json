@@ -1,0 +1,34 @@
+[
+ {
+  "label": "Admin",
+  "employee_id": "EMP-0099",
+  "full_name": "Sanjay Kumar",
+  "username": "sanjay.kumar@znova-demo.example",
+  "role": "ADMIN",
+  "demo_password": "Horizon@2026 (hash it in YOUR seed script; never store plain text)"
+ },
+ {
+  "label": "HR",
+  "employee_id": "EMP-0011",
+  "full_name": "Hemant Mathew",
+  "username": "hemant.mathew@znova-demo.example",
+  "role": "HR",
+  "demo_password": "Horizon@2026 (hash it in YOUR seed script; never store plain text)"
+ },
+ {
+  "label": "Manager",
+  "employee_id": "EMP-0547",
+  "full_name": "Imran Philip",
+  "username": "imran.philip@znova-demo.example",
+  "role": "MANAGER",
+  "demo_password": "Horizon@2026 (hash it in YOUR seed script; never store plain text)"
+ },
+ {
+  "label": "Employee",
+  "employee_id": "EMP-0188",
+  "full_name": "Sasi Shetty",
+  "username": "sasi.shetty@znova-demo.example",
+  "role": "EMPLOYEE",
+  "demo_password": "Horizon@2026 (hash it in YOUR seed script; never store plain text)"
+ }
+]

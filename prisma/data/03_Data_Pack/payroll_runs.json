@@ -1,0 +1,182 @@
+[
+ {
+  "run_id": "PR-2025-04",
+  "period_start": "2025-04-01",
+  "period_end": "2025-04-30",
+  "pay_date": "2025-05-01",
+  "employees_paid": 386,
+  "total_gross": 52740110.43,
+  "total_net": 46035111.16,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-05",
+  "period_start": "2025-05-01",
+  "period_end": "2025-05-31",
+  "pay_date": "2025-06-02",
+  "employees_paid": 386,
+  "total_gross": 40036675.79,
+  "total_net": 35847723.43,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-06",
+  "period_start": "2025-06-01",
+  "period_end": "2025-06-30",
+  "pay_date": "2025-07-01",
+  "employees_paid": 392,
+  "total_gross": 45267094.44,
+  "total_net": 39931280.56,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-07",
+  "period_start": "2025-07-01",
+  "period_end": "2025-07-31",
+  "pay_date": "2025-08-01",
+  "employees_paid": 394,
+  "total_gross": 41377998.81,
+  "total_net": 37002673.69,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-08",
+  "period_start": "2025-08-01",
+  "period_end": "2025-08-31",
+  "pay_date": "2025-09-01",
+  "employees_paid": 399,
+  "total_gross": 41738287.97,
+  "total_net": 37329479.85,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-09",
+  "period_start": "2025-09-01",
+  "period_end": "2025-09-30",
+  "pay_date": "2025-10-01",
+  "employees_paid": 397,
+  "total_gross": 46462618.38,
+  "total_net": 41018291.48,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-10",
+  "period_start": "2025-10-01",
+  "period_end": "2025-10-31",
+  "pay_date": "2025-11-03",
+  "employees_paid": 403,
+  "total_gross": 44451873.32,
+  "total_net": 39596399.83,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-11",
+  "period_start": "2025-11-01",
+  "period_end": "2025-11-30",
+  "pay_date": "2025-12-01",
+  "employees_paid": 399,
+  "total_gross": 42188869.89,
+  "total_net": 37621735.02,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2025-12",
+  "period_start": "2025-12-01",
+  "period_end": "2025-12-31",
+  "pay_date": "2026-01-01",
+  "employees_paid": 403,
+  "total_gross": 46668131.33,
+  "total_net": 41112757.21,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-01",
+  "period_start": "2026-01-01",
+  "period_end": "2026-01-31",
+  "pay_date": "2026-02-02",
+  "employees_paid": 406,
+  "total_gross": 42694150.09,
+  "total_net": 38090764.77,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-02",
+  "period_start": "2026-02-01",
+  "period_end": "2026-02-28",
+  "pay_date": "2026-03-02",
+  "employees_paid": 414,
+  "total_gross": 43366346.64,
+  "total_net": 38720787.33,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-03",
+  "period_start": "2026-03-01",
+  "period_end": "2026-03-31",
+  "pay_date": "2026-04-01",
+  "employees_paid": 414,
+  "total_gross": 48409023.97,
+  "total_net": 42627021.12,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-04",
+  "period_start": "2026-04-01",
+  "period_end": "2026-04-30",
+  "pay_date": "2026-05-01",
+  "employees_paid": 413,
+  "total_gross": 61486224.92,
+  "total_net": 53316969.88,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-05",
+  "period_start": "2026-05-01",
+  "period_end": "2026-05-31",
+  "pay_date": "2026-06-01",
+  "employees_paid": 413,
+  "total_gross": 47013633.45,
+  "total_net": 41672451.7,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-06",
+  "period_start": "2026-06-01",
+  "period_end": "2026-06-30",
+  "pay_date": "2026-07-01",
+  "employees_paid": 421,
+  "total_gross": 53971863.57,
+  "total_net": 47043478.45,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-07",
+  "period_start": "2026-07-01",
+  "period_end": "2026-07-31",
+  "pay_date": "2026-08-03",
+  "employees_paid": 427,
+  "total_gross": 48280389.27,
+  "total_net": 42788384.55,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-08",
+  "period_start": "2026-08-01",
+  "period_end": "2026-08-31",
+  "pay_date": "2026-09-01",
+  "employees_paid": 429,
+  "total_gross": 48685007.97,
+  "total_net": 43173318.36,
+  "status": "PAID"
+ },
+ {
+  "run_id": "PR-2026-09",
+  "period_start": "2026-09-01",
+  "period_end": "2026-09-30",
+  "pay_date": null,
+  "employees_paid": 444,
+  "total_gross": 54788660.03,
+  "total_net": 48089678.3,
+  "status": "POSTED - PAYMENT PENDING"
+ }
+]

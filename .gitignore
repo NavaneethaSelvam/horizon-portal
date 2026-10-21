@@ -23,3 +23,11 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local SQLite databases
+/prisma/*.db
+/prisma/*.db-journal
+
+# Local application logs
+next-startup.log
+server-log.txt

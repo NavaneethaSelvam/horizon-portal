@@ -1,0 +1,306 @@
+[
+ {
+  "sprint_id": "SP-01",
+  "sprint_name": "Sprint 1",
+  "start_date": "2025-04-07",
+  "end_date": "2025-04-18",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-02",
+  "sprint_name": "Sprint 2",
+  "start_date": "2025-04-21",
+  "end_date": "2025-05-02",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-03",
+  "sprint_name": "Sprint 3",
+  "start_date": "2025-05-05",
+  "end_date": "2025-05-16",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-04",
+  "sprint_name": "Sprint 4",
+  "start_date": "2025-05-19",
+  "end_date": "2025-05-30",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-05",
+  "sprint_name": "Sprint 5",
+  "start_date": "2025-06-02",
+  "end_date": "2025-06-13",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-06",
+  "sprint_name": "Sprint 6",
+  "start_date": "2025-06-16",
+  "end_date": "2025-06-27",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-07",
+  "sprint_name": "Sprint 7",
+  "start_date": "2025-06-30",
+  "end_date": "2025-07-11",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-08",
+  "sprint_name": "Sprint 8",
+  "start_date": "2025-07-14",
+  "end_date": "2025-07-25",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-09",
+  "sprint_name": "Sprint 9",
+  "start_date": "2025-07-28",
+  "end_date": "2025-08-08",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-10",
+  "sprint_name": "Sprint 10",
+  "start_date": "2025-08-11",
+  "end_date": "2025-08-22",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-11",
+  "sprint_name": "Sprint 11",
+  "start_date": "2025-08-25",
+  "end_date": "2025-09-05",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-12",
+  "sprint_name": "Sprint 12",
+  "start_date": "2025-09-08",
+  "end_date": "2025-09-19",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-13",
+  "sprint_name": "Sprint 13",
+  "start_date": "2025-09-22",
+  "end_date": "2025-10-03",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-14",
+  "sprint_name": "Sprint 14",
+  "start_date": "2025-10-06",
+  "end_date": "2025-10-17",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-15",
+  "sprint_name": "Sprint 15",
+  "start_date": "2025-10-20",
+  "end_date": "2025-10-31",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-16",
+  "sprint_name": "Sprint 16",
+  "start_date": "2025-11-03",
+  "end_date": "2025-11-14",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-17",
+  "sprint_name": "Sprint 17",
+  "start_date": "2025-11-17",
+  "end_date": "2025-11-28",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-18",
+  "sprint_name": "Sprint 18",
+  "start_date": "2025-12-01",
+  "end_date": "2025-12-12",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-19",
+  "sprint_name": "Sprint 19",
+  "start_date": "2025-12-15",
+  "end_date": "2025-12-26",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-20",
+  "sprint_name": "Sprint 20",
+  "start_date": "2025-12-29",
+  "end_date": "2026-01-09",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-21",
+  "sprint_name": "Sprint 21",
+  "start_date": "2026-01-12",
+  "end_date": "2026-01-23",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-22",
+  "sprint_name": "Sprint 22",
+  "start_date": "2026-01-26",
+  "end_date": "2026-02-06",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-23",
+  "sprint_name": "Sprint 23",
+  "start_date": "2026-02-09",
+  "end_date": "2026-02-20",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-24",
+  "sprint_name": "Sprint 24",
+  "start_date": "2026-02-23",
+  "end_date": "2026-03-06",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-25",
+  "sprint_name": "Sprint 25",
+  "start_date": "2026-03-09",
+  "end_date": "2026-03-20",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-26",
+  "sprint_name": "Sprint 26",
+  "start_date": "2026-03-23",
+  "end_date": "2026-04-03",
+  "working_days": 10,
+  "financial_year": "FY2025-26"
+ },
+ {
+  "sprint_id": "SP-27",
+  "sprint_name": "Sprint 27",
+  "start_date": "2026-04-06",
+  "end_date": "2026-04-17",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-28",
+  "sprint_name": "Sprint 28",
+  "start_date": "2026-04-20",
+  "end_date": "2026-05-01",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-29",
+  "sprint_name": "Sprint 29",
+  "start_date": "2026-05-04",
+  "end_date": "2026-05-15",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-30",
+  "sprint_name": "Sprint 30",
+  "start_date": "2026-05-18",
+  "end_date": "2026-05-29",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-31",
+  "sprint_name": "Sprint 31",
+  "start_date": "2026-06-01",
+  "end_date": "2026-06-12",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-32",
+  "sprint_name": "Sprint 32",
+  "start_date": "2026-06-15",
+  "end_date": "2026-06-26",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-33",
+  "sprint_name": "Sprint 33",
+  "start_date": "2026-06-29",
+  "end_date": "2026-07-10",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-34",
+  "sprint_name": "Sprint 34",
+  "start_date": "2026-07-13",
+  "end_date": "2026-07-24",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-35",
+  "sprint_name": "Sprint 35",
+  "start_date": "2026-07-27",
+  "end_date": "2026-08-07",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-36",
+  "sprint_name": "Sprint 36",
+  "start_date": "2026-08-10",
+  "end_date": "2026-08-21",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-37",
+  "sprint_name": "Sprint 37",
+  "start_date": "2026-08-24",
+  "end_date": "2026-09-04",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ },
+ {
+  "sprint_id": "SP-38",
+  "sprint_name": "Sprint 38",
+  "start_date": "2026-09-07",
+  "end_date": "2026-09-18",
+  "working_days": 10,
+  "financial_year": "FY2026-27"
+ }
+]

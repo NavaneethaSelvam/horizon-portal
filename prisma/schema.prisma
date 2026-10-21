@@ -1,0 +1,359 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  department_id   String     @id
+  department_name String
+  cost_center     String?
+  description     String?
+  employees       Employee[]
+  roles           Role[]
+  @@map("departments")
+}
+
+model Role {
+  role_id       String      @id
+  department_id String?
+  role_title    String
+  level         Int?
+  grade         String?
+  department    Department? @relation(fields: [department_id], references: [department_id])
+  employees     Employee[]
+  @@map("roles")
+}
+
+model Employee {
+  employee_id     String   @id
+  full_name       String
+  work_email      String
+  department_id   String?
+  role_id         String?
+  manager_id      String?
+  work_location   String?
+  work_mode       String?
+  employment_type String?
+  hire_date       String?
+
+  department     Department? @relation(fields: [department_id], references: [department_id])
+  role           Role?       @relation(fields: [role_id], references: [role_id])
+  manager        Employee?   @relation("EmployeeManager", fields: [manager_id], references: [employee_id])
+  direct_reports Employee[]  @relation("EmployeeManager")
+  payslips       Payslip[]
+  leave_balances LeaveBalance[]
+  leave_requests LeaveRequest[]
+  @@map("employees")
+}
+
+model PayrollRun {
+  run_id         String  @id
+  period_start   String?
+  period_end     String?
+  pay_date       String?
+  employees_paid Int?
+  total_gross    Float?
+  total_net      Float?
+  status         String?
+  payslips       Payslip[]
+  @@map("payroll_runs")
+}
+
+model Payslip {
+  payroll_item_id   String  @id
+  run_id            String
+  employee_id       String
+  period_start      String?
+  period_end        String?
+  calendar_days     Int?
+  lop_days          Float?
+  payable_days      Float?
+  basic             Float?
+  hra               Float?
+  conveyance        Float?
+  medical            Float?
+  special_allowance Float?
+  overtime_pay      Float?
+  variable_pay      Float?
+  gross_pay         Float?
+  pf_employee       Float?
+  esi_employee      Float?
+  professional_tax Float?
+  tds               Float?
+  other_deductions  Float?
+  total_deductions  Float?
+  net_pay           Float?
+
+  payroll_run PayrollRun @relation(fields: [run_id], references: [run_id])
+  employee    Employee  @relation(fields: [employee_id], references: [employee_id])
+  @@map("payslips")
+}
+
+model LeaveType {
+  leave_type_code       String  @id
+  leave_type_name       String
+  pay_type              String?
+  annual_quota_days     Float?
+  prorated_for_joiners  Boolean?
+  carry_forward_allowed Boolean?
+  max_carry_forward_days Float?
+  policy_note           String?
+  leave_requests        LeaveRequest[]
+  @@map("leave_types")
+}
+
+model LeaveBalance {
+  employee_id   String
+  as_of_date     String
+  financial_year String
+  cl_entitlement Float?
+  cl_used        Float?
+  cl_balance     Float?
+  sl_entitlement Float?
+  sl_used        Float?
+  sl_balance     Float?
+  el_used_fy     Float?
+  el_balance     Float?
+  pending_days   Float?
+
+  employee Employee @relation(fields: [employee_id], references: [employee_id])
+
+  @@id([employee_id, as_of_date, financial_year])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  leave_request_id String @id
+  employee_id      String
+  leave_type_code  String
+  start_date       String?
+  end_date         String?
+  days             Float?
+  reason           String?
+  status           String?
+  applied_on       String?
+  approver_id      String?
+  decided_on       String?
+
+  employee   Employee  @relation(fields: [employee_id], references: [employee_id])
+  leave_type LeaveType @relation(fields: [leave_type_code], references: [leave_type_code])
+  @@map("leave_requests")
+}
+
+model Holiday {
+  holiday_date     String  @id
+  holiday_name     String
+  holiday_type     String?
+  weekday          String?
+  falls_on_weekend Boolean?
+  calendar_note    String?
+  @@map("holidays")
+}
+
+model AiAnomalyResult {
+  result_id      String @id
+  source_dataset String?
+  record_id      String?
+  employee_id    String?
+  period         String?
+  anomaly_score  Float?
+  flagged        Boolean?
+  reason_code    String?
+  reason_text    String?
+  money_at_risk  Float?
+  model_version  String?
+  scored_at      String?
+  @@map("ai_anomaly_results")
+}
+
+model AiAttritionRisk {
+  prediction_id  String @id
+  employee_id    String?
+  department_id  String?
+  as_of_date     String?
+  risk_score_12m Float?
+  risk_band      String?
+  top_reason_1   String?
+  top_reason_2   String?
+  top_reason_3   String?
+  model_version  String?
+  model_note     String?
+  @@map("ai_attrition_risk")
+}
+
+model Announcement {
+  announcement_id String @id
+  title           String
+  body            String
+  category        String?
+  posted_on       String?
+  @@map("announcements")
+}
+
+model AttendanceMonthly {
+  employee_id         String
+  period_end_date     String
+  scheduled_days      Int?
+  present_days        Int?
+  wfh_days            Int?
+  paid_leave_days     Float?
+  unpaid_absence_days Float?
+  late_arrivals       Int?
+  avg_hours_worked    Float?
+  overtime_hours      Float?
+  attendance_rate     Float?
+
+  @@id([employee_id, period_end_date])
+  @@map("attendance_monthly")
+}
+
+model ChatbotResponse {
+  intent                  String @id
+  response_template       String
+  requires_login          Boolean?
+  allowed_roles           String?
+  backend_or_service_call String?
+  on_failure              String?
+  policy_note             String?
+  @@map("chatbot_responses")
+}
+
+model Client {
+  client_id          String @id
+  client_name        String
+  industry           String?
+  country            String?
+  payment_terms_days Int?
+  invoices           Invoice[]
+  @@map("clients")
+}
+
+model DemoUser {
+  username      String @id
+  label         String?
+  employee_id   String?
+  full_name     String?
+  role          String?
+  password_hash String
+  @@map("demo_users")
+}
+
+model Expense {
+  expense_id             String @id
+  expense_date            String?
+  category_account        String?
+  vendor_id               String?
+  bill_reference          String?
+  description             String?
+  department_id           String?
+  amount_excl_gst         Float?
+  gst_rate_percent        Float?
+  gst_amount              Float?
+  total_amount            Float?
+  due_date                String?
+  paid_date               String?
+  status                  String?
+  payment_mode            String?
+  submitted_by            String?
+  approved_by             String?
+  ledger_entry_id         String?
+  payment_ledger_entry_id String?
+  @@map("expenses")
+}
+
+model Faq {
+  faq_id        String @id
+  question      String
+  answer        String
+  category      String?
+  policy_source String?
+  @@map("hr_faq")
+}
+
+model Invoice {
+  invoice_id                   String @id
+  invoice_number               String
+  client_id                    String?
+  invoice_date                 String?
+  due_date                     String?
+  service_line_account         String?
+  currency                     String?
+  subtotal                     Float?
+  gst_rate_percent             Float?
+  gst_amount                   Float?
+  total_amount                 Float?
+  amount_paid                  Float?
+  balance_due                  Float?
+  status                       String?
+  last_payment_date            String?
+  po_number                    String?
+  carried_in_from_prior_period Boolean?
+  created_by                   String?
+  created_at                   String?
+  ledger_entry_id              String?
+
+  client Client? @relation(fields: [client_id], references: [client_id])
+  @@map("invoices")
+}
+
+model Sprint {
+  sprint_id      String @id
+  sprint_name    String
+  start_date     String?
+  end_date       String?
+  working_days   Int?
+  financial_year String?
+  tasks          Task[]
+  @@map("sprints")
+}
+
+model Task {
+  task_id              String @id
+  team_id              String
+  sprint_id            String
+  assignee_employee_id String?
+  task_type            String?
+  priority             String?
+  story_points         Float?
+  created_date         String?
+  started_date         String?
+  due_date             String?
+  completed_date       String?
+  status               String?
+  reopened_count       Int?
+  cycle_time_days      Float?
+  is_overdue_at_cutoff Boolean?
+  completed_on_time    Boolean?
+
+  sprint Sprint @relation(fields: [sprint_id], references: [sprint_id])
+  team   Team   @relation(fields: [team_id], references: [team_id])
+  @@map("tasks")
+}
+
+model Team {
+  team_id               String @id
+  team_name             String
+  department_id         String?
+  team_lead_employee_id String?
+  active_members        Int?
+  planning_cadence      String?
+  board_tool            String?
+  tasks                 Task[]
+  @@map("teams")
+}
+
+model Vendor {
+  vendor_id               String @id
+  vendor_name             String
+  primary_expense_account String?
+  payment_terms_days      Int?
+  city                    String?
+  gst_registration        String?
+  is_active               Boolean?
+  @@map("vendors")
+}

@@ -1,0 +1,146 @@
+[
+ {
+  "team_id": "T01",
+  "team_name": "Platform Core",
+  "department_id": "D01",
+  "team_lead_employee_id": "EMP-0100",
+  "active_members": 35,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T02",
+  "team_name": "Payments & Billing",
+  "department_id": "D01",
+  "team_lead_employee_id": "EMP-0046",
+  "active_members": 34,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T03",
+  "team_name": "Mobile Apps",
+  "department_id": "D01",
+  "team_lead_employee_id": "EMP-0497",
+  "active_members": 28,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T04",
+  "team_name": "QA Automation",
+  "department_id": "D01",
+  "team_lead_employee_id": "EMP-0198",
+  "active_members": 33,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T05",
+  "team_name": "DevOps & Reliability",
+  "department_id": "D01",
+  "team_lead_employee_id": "EMP-0109",
+  "active_members": 34,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T06",
+  "team_name": "Product Squad",
+  "department_id": "D02",
+  "team_lead_employee_id": "EMP-0186",
+  "active_members": 15,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T07",
+  "team_name": "Design Systems",
+  "department_id": "D02",
+  "team_lead_employee_id": "EMP-0055",
+  "active_members": 10,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T08",
+  "team_name": "Data Platform",
+  "department_id": "D03",
+  "team_lead_employee_id": "EMP-0246",
+  "active_members": 14,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T09",
+  "team_name": "ML Services",
+  "department_id": "D03",
+  "team_lead_employee_id": "EMP-0325",
+  "active_members": 20,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T10",
+  "team_name": "Analytics & BI",
+  "department_id": "D03",
+  "team_lead_employee_id": null,
+  "active_members": 17,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T11",
+  "team_name": "Growth Marketing",
+  "department_id": "D05",
+  "team_lead_employee_id": "EMP-0403",
+  "active_members": 12,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T12",
+  "team_name": "Support Tooling",
+  "department_id": "D06",
+  "team_lead_employee_id": "EMP-0124",
+  "active_members": 58,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T13",
+  "team_name": "HR Systems",
+  "department_id": "D07",
+  "team_lead_employee_id": "EMP-0719",
+  "active_members": 19,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T14",
+  "team_name": "Finance Automation",
+  "department_id": "D08",
+  "team_lead_employee_id": "EMP-0002",
+  "active_members": 16,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T15",
+  "team_name": "Internal IT",
+  "department_id": "D09",
+  "team_lead_employee_id": "EMP-0038",
+  "active_members": 28,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ },
+ {
+  "team_id": "T16",
+  "team_name": "Sales Enablement",
+  "department_id": "D04",
+  "team_lead_employee_id": "EMP-0026",
+  "active_members": 45,
+  "planning_cadence": "2-week sprint",
+  "board_tool": "Full Stack task board (sample feed)"
+ }
+]

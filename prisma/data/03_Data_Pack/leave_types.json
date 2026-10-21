@@ -1,0 +1,62 @@
+[
+ {
+  "leave_type_code": "CL",
+  "leave_type_name": "Casual Leave",
+  "pay_type": "Paid",
+  "annual_quota_days": 12,
+  "prorated_for_joiners": "Y",
+  "carry_forward_allowed": "N",
+  "max_carry_forward_days": 0,
+  "policy_note": "Short-notice personal leave"
+ },
+ {
+  "leave_type_code": "SL",
+  "leave_type_name": "Sick Leave",
+  "pay_type": "Paid",
+  "annual_quota_days": 12,
+  "prorated_for_joiners": "Y",
+  "carry_forward_allowed": "N",
+  "max_carry_forward_days": 0,
+  "policy_note": "Illness; medical certificate needed beyond 2 days"
+ },
+ {
+  "leave_type_code": "EL",
+  "leave_type_name": "Earned (Privilege) Leave",
+  "pay_type": "Paid",
+  "annual_quota_days": 15,
+  "prorated_for_joiners": "Y",
+  "carry_forward_allowed": "Y",
+  "max_carry_forward_days": 30,
+  "policy_note": "Accrues 1.25 days per month; carry forward up to 30 days"
+ },
+ {
+  "leave_type_code": "ML",
+  "leave_type_name": "Maternity Leave",
+  "pay_type": "Paid",
+  "annual_quota_days": 182,
+  "prorated_for_joiners": "N",
+  "carry_forward_allowed": "N",
+  "max_carry_forward_days": 0,
+  "policy_note": "Statutory maternity benefit (26 weeks)"
+ },
+ {
+  "leave_type_code": "BL",
+  "leave_type_name": "Bereavement Leave",
+  "pay_type": "Paid",
+  "annual_quota_days": 3,
+  "prorated_for_joiners": "N",
+  "carry_forward_allowed": "N",
+  "max_carry_forward_days": 0,
+  "policy_note": "Up to 3 days per event"
+ },
+ {
+  "leave_type_code": "LOP",
+  "leave_type_name": "Loss of Pay",
+  "pay_type": "Unpaid",
+  "annual_quota_days": 0,
+  "prorated_for_joiners": "N",
+  "carry_forward_allowed": "N",
+  "max_carry_forward_days": 0,
+  "policy_note": "Unpaid leave; deducted from salary on a calendar-day basis"
+ }
+]

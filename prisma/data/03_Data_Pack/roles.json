@@ -1,0 +1,408 @@
+[
+ {
+  "role_id": "R001",
+  "department_id": "D00",
+  "role_title": "Chief Executive Officer",
+  "level": 7,
+  "grade": "L7 Executive Leadership"
+ },
+ {
+  "role_id": "R002",
+  "department_id": "D01",
+  "role_title": "Associate Software Engineer",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R003",
+  "department_id": "D01",
+  "role_title": "Software Engineer",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R004",
+  "department_id": "D01",
+  "role_title": "QA Engineer",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R005",
+  "department_id": "D01",
+  "role_title": "Senior Software Engineer",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R006",
+  "department_id": "D01",
+  "role_title": "DevOps Engineer",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R007",
+  "department_id": "D01",
+  "role_title": "Tech Lead",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R008",
+  "department_id": "D01",
+  "role_title": "Engineering Manager",
+  "level": 5,
+  "grade": "L5 Senior Manager"
+ },
+ {
+  "role_id": "R009",
+  "department_id": "D01",
+  "role_title": "Director of Engineering",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R010",
+  "department_id": "D02",
+  "role_title": "Associate Product Analyst",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R011",
+  "department_id": "D02",
+  "role_title": "UI/UX Designer",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R012",
+  "department_id": "D02",
+  "role_title": "Product Manager",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R013",
+  "department_id": "D02",
+  "role_title": "Senior Product Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R014",
+  "department_id": "D02",
+  "role_title": "Head of Product",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R015",
+  "department_id": "D03",
+  "role_title": "Junior Data Analyst",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R016",
+  "department_id": "D03",
+  "role_title": "Data Analyst",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R017",
+  "department_id": "D03",
+  "role_title": "Data Engineer",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R018",
+  "department_id": "D03",
+  "role_title": "ML Engineer",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R019",
+  "department_id": "D03",
+  "role_title": "Senior Data Scientist",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R020",
+  "department_id": "D03",
+  "role_title": "Data & AI Manager",
+  "level": 5,
+  "grade": "L5 Senior Manager"
+ },
+ {
+  "role_id": "R021",
+  "department_id": "D03",
+  "role_title": "Head of Data & AI",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R022",
+  "department_id": "D04",
+  "role_title": "Sales Development Representative",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R023",
+  "department_id": "D04",
+  "role_title": "Account Executive",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R024",
+  "department_id": "D04",
+  "role_title": "Senior Account Executive",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R025",
+  "department_id": "D04",
+  "role_title": "Sales Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R026",
+  "department_id": "D04",
+  "role_title": "Regional Sales Head",
+  "level": 5,
+  "grade": "L5 Senior Manager"
+ },
+ {
+  "role_id": "R027",
+  "department_id": "D04",
+  "role_title": "VP Sales",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R028",
+  "department_id": "D05",
+  "role_title": "Marketing Associate",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R029",
+  "department_id": "D05",
+  "role_title": "Digital Marketing Executive",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R030",
+  "department_id": "D05",
+  "role_title": "Content Strategist",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R031",
+  "department_id": "D05",
+  "role_title": "Marketing Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R032",
+  "department_id": "D05",
+  "role_title": "Head of Marketing",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R033",
+  "department_id": "D06",
+  "role_title": "Support Associate",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R034",
+  "department_id": "D06",
+  "role_title": "Support Executive",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R035",
+  "department_id": "D06",
+  "role_title": "Senior Support Specialist",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R036",
+  "department_id": "D06",
+  "role_title": "Support Team Lead",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R037",
+  "department_id": "D06",
+  "role_title": "Support Manager",
+  "level": 5,
+  "grade": "L5 Senior Manager"
+ },
+ {
+  "role_id": "R038",
+  "department_id": "D06",
+  "role_title": "Head of Customer Success",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R039",
+  "department_id": "D07",
+  "role_title": "HR Associate",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R040",
+  "department_id": "D07",
+  "role_title": "HR Executive",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R041",
+  "department_id": "D07",
+  "role_title": "HR Business Partner",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R042",
+  "department_id": "D07",
+  "role_title": "HR Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R043",
+  "department_id": "D07",
+  "role_title": "Head of HR",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R044",
+  "department_id": "D08",
+  "role_title": "Accounts Associate",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R045",
+  "department_id": "D08",
+  "role_title": "Accountant",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R046",
+  "department_id": "D08",
+  "role_title": "Senior Accountant",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R047",
+  "department_id": "D08",
+  "role_title": "Finance Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R048",
+  "department_id": "D08",
+  "role_title": "Financial Controller",
+  "level": 5,
+  "grade": "L5 Senior Manager"
+ },
+ {
+  "role_id": "R049",
+  "department_id": "D08",
+  "role_title": "Chief Financial Officer",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R050",
+  "department_id": "D09",
+  "role_title": "IT Support Associate",
+  "level": 1,
+  "grade": "L1 Associate"
+ },
+ {
+  "role_id": "R051",
+  "department_id": "D09",
+  "role_title": "Operations Executive",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R052",
+  "department_id": "D09",
+  "role_title": "Systems Administrator",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R053",
+  "department_id": "D09",
+  "role_title": "Operations Manager",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R054",
+  "department_id": "D09",
+  "role_title": "Head of Operations",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ },
+ {
+  "role_id": "R055",
+  "department_id": "D10",
+  "role_title": "Legal Associate",
+  "level": 2,
+  "grade": "L2 Executive"
+ },
+ {
+  "role_id": "R056",
+  "department_id": "D10",
+  "role_title": "Compliance Analyst",
+  "level": 3,
+  "grade": "L3 Senior"
+ },
+ {
+  "role_id": "R057",
+  "department_id": "D10",
+  "role_title": "Legal Counsel",
+  "level": 4,
+  "grade": "L4 Lead/Manager"
+ },
+ {
+  "role_id": "R058",
+  "department_id": "D10",
+  "role_title": "Head of Legal & Compliance",
+  "level": 6,
+  "grade": "L6 Head/Director"
+ }
+]

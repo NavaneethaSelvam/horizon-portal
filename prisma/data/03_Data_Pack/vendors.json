@@ -1,0 +1,272 @@
+[
+ {
+  "vendor_id": "V-001",
+  "vendor_name": "Skyline Realty Holdings",
+  "primary_expense_account": 5101,
+  "payment_terms_days": 30,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0001",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-002",
+  "vendor_name": "Garden City Workspaces",
+  "primary_expense_account": 5101,
+  "payment_terms_days": 15,
+  "city": "Hyderabad",
+  "gst_registration": "DEMO-VGSTIN-0002",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-003",
+  "vendor_name": "Marina Business Park LLP",
+  "primary_expense_account": 5101,
+  "payment_terms_days": 30,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0003",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-004",
+  "vendor_name": "Southern Power Distribution",
+  "primary_expense_account": 5102,
+  "payment_terms_days": 15,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0004",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-005",
+  "vendor_name": "MetroWater Services",
+  "primary_expense_account": 5102,
+  "payment_terms_days": 15,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0005",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-006",
+  "vendor_name": "FiberNet Broadband",
+  "primary_expense_account": 5103,
+  "payment_terms_days": 30,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0006",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-007",
+  "vendor_name": "Connectix Telecom",
+  "primary_expense_account": 5103,
+  "payment_terms_days": 30,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0007",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-008",
+  "vendor_name": "NimbusCloud Services",
+  "primary_expense_account": 5104,
+  "payment_terms_days": 30,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0008",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-009",
+  "vendor_name": "StratoHost Infrastructure",
+  "primary_expense_account": 5104,
+  "payment_terms_days": 30,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0009",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-010",
+  "vendor_name": "CodeCraft Tools",
+  "primary_expense_account": 5105,
+  "payment_terms_days": 30,
+  "city": "Coimbatore",
+  "gst_registration": "DEMO-VGSTIN-0010",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-011",
+  "vendor_name": "Collabora Suite",
+  "primary_expense_account": 5105,
+  "payment_terms_days": 30,
+  "city": "Chennai",
+  "gst_registration": "DEMO-VGSTIN-0011",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-012",
+  "vendor_name": "SecureAuth Systems",
+  "primary_expense_account": 5105,
+  "payment_terms_days": 45,
+  "city": "Chennai",
+  "gst_registration": "DEMO-VGSTIN-0012",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-013",
+  "vendor_name": "DataLens Analytics Licences",
+  "primary_expense_account": 5105,
+  "payment_terms_days": 45,
+  "city": "Pune",
+  "gst_registration": "DEMO-VGSTIN-0013",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-014",
+  "vendor_name": "SkyWay Travel Desk",
+  "primary_expense_account": 5106,
+  "payment_terms_days": 15,
+  "city": "Chennai",
+  "gst_registration": "DEMO-VGSTIN-0014",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-015",
+  "vendor_name": "StayWell Corporate Hotels",
+  "primary_expense_account": 5106,
+  "payment_terms_days": 15,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0015",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-016",
+  "vendor_name": "CityCabs Corporate",
+  "primary_expense_account": 5106,
+  "payment_terms_days": 15,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0016",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-017",
+  "vendor_name": "PixelPulse Media",
+  "primary_expense_account": 5107,
+  "payment_terms_days": 30,
+  "city": "Pune",
+  "gst_registration": "DEMO-VGSTIN-0017",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-018",
+  "vendor_name": "BrandBridge Agency",
+  "primary_expense_account": 5107,
+  "payment_terms_days": 45,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0018",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-019",
+  "vendor_name": "EventSpark Productions",
+  "primary_expense_account": 5107,
+  "payment_terms_days": 30,
+  "city": "Mumbai",
+  "gst_registration": "DEMO-VGSTIN-0019",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-020",
+  "vendor_name": "Ledger & Co Chartered Accountants",
+  "primary_expense_account": 5108,
+  "payment_terms_days": 30,
+  "city": "Pune",
+  "gst_registration": "DEMO-VGSTIN-0020",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-021",
+  "vendor_name": "Lexicon Legal Associates",
+  "primary_expense_account": 5108,
+  "payment_terms_days": 30,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0021",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-022",
+  "vendor_name": "Prism Advisory Services",
+  "primary_expense_account": 5108,
+  "payment_terms_days": 45,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0022",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-023",
+  "vendor_name": "TalentBridge Search",
+  "primary_expense_account": 5109,
+  "payment_terms_days": 30,
+  "city": "Hyderabad",
+  "gst_registration": "DEMO-VGSTIN-0023",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-024",
+  "vendor_name": "HireWell Consultants",
+  "primary_expense_account": 5109,
+  "payment_terms_days": 30,
+  "city": "Hyderabad",
+  "gst_registration": "DEMO-VGSTIN-0024",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-025",
+  "vendor_name": "LearnForge Academy",
+  "primary_expense_account": 5110,
+  "payment_terms_days": 30,
+  "city": "Hyderabad",
+  "gst_registration": "DEMO-VGSTIN-0025",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-026",
+  "vendor_name": "SkillSphere Training",
+  "primary_expense_account": 5110,
+  "payment_terms_days": 30,
+  "city": "Chennai",
+  "gst_registration": "DEMO-VGSTIN-0026",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-027",
+  "vendor_name": "Suraksha General Insurance",
+  "primary_expense_account": 5111,
+  "payment_terms_days": 0,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0027",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-028",
+  "vendor_name": "Medicare Group Health Cover",
+  "primary_expense_account": 5111,
+  "payment_terms_days": 0,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0028",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-029",
+  "vendor_name": "OfficeMart Supplies",
+  "primary_expense_account": 5112,
+  "payment_terms_days": 15,
+  "city": "Bengaluru",
+  "gst_registration": "DEMO-VGSTIN-0029",
+  "is_active": "Y"
+ },
+ {
+  "vendor_id": "V-030",
+  "vendor_name": "PrintPoint Stationers",
+  "primary_expense_account": 5112,
+  "payment_terms_days": 15,
+  "city": "Pune",
+  "gst_registration": "DEMO-VGSTIN-0030",
+  "is_active": "Y"
+ }
+]

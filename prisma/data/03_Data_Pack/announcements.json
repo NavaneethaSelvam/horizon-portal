@@ -1,0 +1,58 @@
+[
+ {
+  "announcement_id": "AN-001",
+  "title": "Welcome to Horizon Portal",
+  "body": "Your new home for leave, payslips and your team.",
+  "category": "General",
+  "posted_on": "2026-09-10"
+ },
+ {
+  "announcement_id": "AN-002",
+  "title": "Q3 Payroll Calendar",
+  "body": "September payroll is processed on the last working day.",
+  "category": "Payroll",
+  "posted_on": "2026-09-11"
+ },
+ {
+  "announcement_id": "AN-003",
+  "title": "Annual Appraisal Cycle",
+  "body": "Self-assessments open on 1 April.",
+  "category": "HR",
+  "posted_on": "2026-09-12"
+ },
+ {
+  "announcement_id": "AN-004",
+  "title": "Hybrid Work Policy Update",
+  "body": "Core collaboration days are Tuesday to Thursday.",
+  "category": "Policy",
+  "posted_on": "2026-09-13"
+ },
+ {
+  "announcement_id": "AN-005",
+  "title": "Security Reminder",
+  "body": "Never share your password. Turn on two-factor authentication.",
+  "category": "Security",
+  "posted_on": "2026-09-14"
+ },
+ {
+  "announcement_id": "AN-006",
+  "title": "Health Insurance Enrolment",
+  "body": "Enrolment window closes on the 15th.",
+  "category": "Benefits",
+  "posted_on": "2026-09-15"
+ },
+ {
+  "announcement_id": "AN-007",
+  "title": "Office Holiday Notice",
+  "body": "Offices are closed on the declared festival holiday.",
+  "category": "General",
+  "posted_on": "2026-09-16"
+ },
+ {
+  "announcement_id": "AN-008",
+  "title": "Sprint 38 Demo Day",
+  "body": "Teams present their sprint results on Friday.",
+  "category": "Engineering",
+  "posted_on": "2026-09-17"
+ }
+]
