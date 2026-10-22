@@ -5,7 +5,29 @@ import fs from "node:fs";
 import path from "node:path";
 
 const prisma = new PrismaClient();
-const db = prisma as any;
+
+type SeedRow = Record<string, unknown>;
+
+type ScalarType =
+  | "String"
+  | "Int"
+  | "Float"
+  | "Boolean"
+  | "DateTime"
+  | "Json";
+
+type SeedDelegate = {
+  createMany(args: {
+    data: SeedRow[];
+  }): Promise<unknown>;
+  deleteMany(): Promise<unknown>;
+  update(args: {
+    where: SeedRow;
+    data: SeedRow;
+  }): Promise<unknown>;
+};
+
+const db = prisma as unknown as Record<string, SeedDelegate>;
 
 const DATA_DIR = path.join(
   process.cwd(),
@@ -45,14 +67,6 @@ const datasets = [
   ["tasks", "task"],
   ["vendors", "vendor"],
 ] as const;
-
-type ScalarType =
-  | "String"
-  | "Int"
-  | "Float"
-  | "Boolean"
-  | "DateTime"
-  | "Json";
 
 const fieldTypesCache = new Map<
   string,
@@ -110,9 +124,7 @@ function readPrismaFieldTypes(
 
     const [, fieldName, typeName] = match;
 
-    if (
-      supportedTypes.has(typeName as ScalarType)
-    ) {
+    if (supportedTypes.has(typeName as ScalarType)) {
       fields.set(fieldName, typeName as ScalarType);
     }
   }
@@ -143,12 +155,20 @@ function getFieldTypes(
   return fieldTypesCache.get(modelName)!;
 }
 
+function isSeedRow(value: unknown): value is SeedRow {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+}
+
 function normalizeRow(
-  input: Record<string, any>,
+  input: SeedRow,
   modelName: string
-): Record<string, any> {
+): SeedRow {
   const fieldTypes = getFieldTypes(modelName);
-  const row: Record<string, any> = {};
+  const row: SeedRow = {};
 
   for (const [key, original] of Object.entries(input)) {
     // Never store demo passwords in plaintext.
@@ -159,7 +179,7 @@ function normalizeRow(
     if (!fieldTypes.has(key)) {
       throw new Error(
         `Unknown field "${key}" in model "${modelName}". ` +
-        `Check the JSON dataset against schema.prisma.`
+          "Check the JSON dataset against schema.prisma."
       );
     }
 
@@ -189,7 +209,7 @@ function normalizeRow(
         ) {
           throw new Error(
             `${modelName}.${key} must be an integer. ` +
-            `Received: ${JSON.stringify(original)}`
+              `Received: ${JSON.stringify(original)}`
           );
         }
 
@@ -203,50 +223,52 @@ function normalizeRow(
         if (!Number.isFinite(number)) {
           throw new Error(
             `${modelName}.${key} must be numeric. ` +
-            `Received: ${JSON.stringify(original)}`
+              `Received: ${JSON.stringify(original)}`
           );
         }
 
         row[key] = number;
         break;
       }
-case "Boolean": {
-  if (typeof original === "boolean") {
-    row[key] = original;
-  } else if (
-    original === 1 ||
-    original === "1" ||
-    (typeof original === "string" &&
-      ["true", "yes", "y"].includes(
-        original.trim().toLowerCase()
-      ))
-  ) {
-    row[key] = true;
-  } else if (
-    original === 0 ||
-    original === "0" ||
-    (typeof original === "string" &&
-      ["false", "no", "n"].includes(
-        original.trim().toLowerCase()
-      ))
-  ) {
-    row[key] = false;
-  } else {
-    throw new Error(
-      `${modelName}.${key} must be boolean. ` +
-      `Received: ${JSON.stringify(original)}`
-    );
-  }
 
-  break;
-}
+      case "Boolean": {
+        if (typeof original === "boolean") {
+          row[key] = original;
+        } else if (
+          original === 1 ||
+          original === "1" ||
+          (typeof original === "string" &&
+            ["true", "yes", "y"].includes(
+              original.trim().toLowerCase()
+            ))
+        ) {
+          row[key] = true;
+        } else if (
+          original === 0 ||
+          original === "0" ||
+          (typeof original === "string" &&
+            ["false", "no", "n"].includes(
+              original.trim().toLowerCase()
+            ))
+        ) {
+          row[key] = false;
+        } else {
+          throw new Error(
+            `${modelName}.${key} must be boolean. ` +
+              `Received: ${JSON.stringify(original)}`
+          );
+        }
+
+        break;
+      }
+
       case "DateTime": {
-        const date = new Date(original);
+        const date = new Date(String(original));
 
         if (Number.isNaN(date.getTime())) {
           throw new Error(
             `${modelName}.${key} must be a valid date. ` +
-            `Received: ${JSON.stringify(original)}`
+              `Received: ${JSON.stringify(original)}`
           );
         }
 
@@ -254,12 +276,14 @@ case "Boolean": {
         break;
       }
 
-      case "Json":
+      case "Json": {
         row[key] = original;
         break;
+      }
 
-      default:
+      default: {
         row[key] = original;
+      }
     }
   }
 
@@ -276,63 +300,54 @@ async function insertRows(
   );
 
   if (!fs.existsSync(filePath)) {
-    throw new Error(
-      `Dataset not found: ${filePath}`
-    );
+    throw new Error(`Dataset not found: ${filePath}`);
   }
 
   const parsed: unknown = JSON.parse(
     fs.readFileSync(filePath, "utf8")
   );
 
-  if (!Array.isArray(parsed)) {
+  if (
+    !Array.isArray(parsed) ||
+    !parsed.every(isSeedRow)
+  ) {
     throw new Error(
-      `${fileName}.json must contain a JSON array`
+      `${fileName}.json must contain an array of JSON objects`
     );
   }
 
-  let rows: Record<string, any>[] = parsed.map(
-    (item: Record<string, any>) => {
-      const row = normalizeRow(item, modelName);
+  let rows: SeedRow[] = parsed.map((item) => {
+    const row = normalizeRow(item, modelName);
 
-      // Insert employees before restoring manager links.
-      if (modelName === "employee") {
-        row.manager_id = null;
-      }
-
-      return row;
+    // Insert employees before restoring manager links.
+    if (modelName === "employee") {
+      row.manager_id = null;
     }
-  );
+
+    return row;
+  });
 
   if (modelName === "demoUser") {
     rows = await Promise.all(
-      parsed.map(
-        async (item: Record<string, any>) => {
-          const row = normalizeRow(
-            item,
-            modelName
-          );
+      parsed.map(async (item) => {
+        const row = normalizeRow(item, modelName);
 
-          row.password_hash = await bcrypt.hash(
-            String(item.demo_password ?? ""),
-            10
-          );
+        row.password_hash = await bcrypt.hash(
+          String(item.demo_password ?? ""),
+          10
+        );
 
-          return row;
-        }
-      )
+        return row;
+      })
     );
   }
 
   const delegate = db[modelName];
 
-  if (
-    !delegate ||
-    typeof delegate.createMany !== "function"
-  ) {
+  if (!delegate) {
     throw new Error(
       `Prisma delegate "${modelName}" is unavailable. ` +
-      `Run npx prisma generate and check the model name.`
+        "Run npx prisma generate and check the model name."
     );
   }
 
@@ -355,21 +370,29 @@ async function insertRows(
   return rows.length;
 }
 
-async function restoreManagerRelationships() {
+async function restoreManagerRelationships(): Promise<void> {
   const filePath = path.join(
     DATA_DIR,
     "employees.json"
   );
 
-  const employees = JSON.parse(
+  const parsed: unknown = JSON.parse(
     fs.readFileSync(filePath, "utf8")
   );
 
+  if (
+    !Array.isArray(parsed) ||
+    !parsed.every(isSeedRow)
+  ) {
+    throw new Error(
+      "employees.json must contain an array of JSON objects"
+    );
+  }
+
+  const employees = parsed;
+
   const validIds = new Set(
-    employees.map(
-      (employee: Record<string, any>) =>
-        employee.employee_id
-    )
+    employees.map((employee) => employee.employee_id)
   );
 
   for (const employee of employees) {
@@ -396,7 +419,7 @@ async function restoreManagerRelationships() {
   );
 }
 
-async function main() {
+async function main(): Promise<void> {
   // Validate all dataset files and field names before
   // deleting any existing database records.
   for (const [fileName, modelName] of datasets) {
@@ -406,26 +429,24 @@ async function main() {
     );
 
     if (!fs.existsSync(filePath)) {
-      throw new Error(
-        `Dataset not found: ${filePath}`
-      );
+      throw new Error(`Dataset not found: ${filePath}`);
     }
 
     const parsed: unknown = JSON.parse(
       fs.readFileSync(filePath, "utf8")
     );
 
-    if (!Array.isArray(parsed)) {
+    if (
+      !Array.isArray(parsed) ||
+      !parsed.every(isSeedRow)
+    ) {
       throw new Error(
-        `${fileName}.json must contain a JSON array`
+        `${fileName}.json must contain an array of JSON objects`
       );
     }
 
     for (const item of parsed) {
-      normalizeRow(
-        item as Record<string, any>,
-        modelName
-      );
+      normalizeRow(item, modelName);
     }
 
     console.log(
@@ -438,11 +459,18 @@ async function main() {
   );
 
   // Clear dependent records before parent records.
-  for (
-    const [fileName, modelName] of
-    [...datasets].reverse()
-  ) {
-    await db[modelName].deleteMany();
+  for (const [fileName, modelName] of [
+    ...datasets,
+  ].reverse()) {
+    const delegate = db[modelName];
+
+    if (!delegate) {
+      throw new Error(
+        `Prisma delegate "${modelName}" is unavailable.`
+      );
+    }
+
+    await delegate.deleteMany();
     console.log(`Cleared ${fileName}`);
   }
 
@@ -453,13 +481,11 @@ async function main() {
 
   await restoreManagerRelationships();
 
-  console.log(
-    "\nSeed completed successfully!"
-  );
+  console.log("\nSeed completed successfully!");
 }
 
 main()
-  .catch((error) => {
+  .catch((error: unknown) => {
     console.error("\nSeed failed:", error);
     process.exitCode = 1;
   })
