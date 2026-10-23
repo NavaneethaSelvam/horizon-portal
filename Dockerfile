@@ -21,8 +21,7 @@ RUN npm run build
 
 
 FROM node:22-alpine AS runner
-ENV DATABASE_URL="file:./dev.db"
-
+ENV DATABASE_URL="file:/app/prisma/dev.db"
 WORKDIR /app
 
 ENV NODE_ENV=production

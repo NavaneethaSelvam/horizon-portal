@@ -145,6 +145,25 @@ const navigation: NavigationGroup[] = [
   },
 ];
 
+
+function normalizeRole(role: unknown): UserRole | null {
+  if (typeof role !== "string") return null;
+
+  const normalized = role.trim().toUpperCase();
+
+  if (
+    normalized === "ADMIN" ||
+    normalized === "HR" ||
+    normalized === "MANAGER" ||
+    normalized === "EMPLOYEE"
+  ) {
+    return normalized;
+  }
+
+  return null;
+}
+
+
 function formatRole(role: string | null | undefined) {
   if (!role) return "Portal user";
 
@@ -202,10 +221,18 @@ export function PortalShell({
           throw new Error("User information is unavailable.");
         }
 
-        if (!cancelled) {
-          setUser(result.user as PortalUser);
-          setSessionError("");
-        }
+       
+if (!cancelled) {
+  setUser({
+    username: result.user.username,
+    name: result.user.name ?? null,
+    employeeId: result.user.employeeId ?? null,
+    role: normalizeRole(result.user.role),
+  });
+
+  setSessionError("");
+}
+
       } catch {
         if (!cancelled) {
           setSessionError(
