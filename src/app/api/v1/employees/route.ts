@@ -4,7 +4,6 @@ import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
 
 const prisma = new PrismaClient();
-
 const SESSION_COOKIE = "horizon_session";
 
 function getSessionSecret() {
@@ -19,40 +18,27 @@ function getSessionSecret() {
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Read the session cookie.
     const token = request.cookies.get(SESSION_COOKIE)?.value;
 
     if (!token) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Authentication required.",
-        },
+        { success: false, message: "Authentication required." },
         { status: 401 }
       );
     }
 
-    // 2. Verify the session token.
-    const { payload } = await jwtVerify(
-      token,
-      getSessionSecret()
-    );
+    const { payload } = await jwtVerify(token, getSessionSecret());
 
     if (
       typeof payload.sub !== "string" ||
       typeof payload.role !== "string"
     ) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid session.",
-        },
+        { success: false, message: "Invalid session." },
         { status: 401 }
       );
     }
 
-    // 3. Confirm the account is still active
-    // and its current role matches the session.
     const user = await prisma.demoUser.findUnique({
       where: { username: payload.sub },
       select: {
@@ -62,12 +48,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const allowedRoles = [
-      "ADMIN",
-      "HR",
-      "MANAGER",
-      "EMPLOYEE",
-    ];
+    const allowedRoles = ["ADMIN", "HR", "MANAGER", "EMPLOYEE"];
 
     if (
       !user ||
@@ -76,26 +57,111 @@ export async function GET(request: NextRequest) {
       !allowedRoles.includes(user.role ?? "")
     ) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Your session is no longer valid.",
-        },
+        { success: false, message: "Your session is no longer valid." },
         { status: 401 }
       );
     }
 
-    // 4. Only authenticated, active users reach this query.
-    const employees = await prisma.employee.findMany({
-      take: 25,
-      orderBy: {
-        employee_id: "asc",
-      },
-    });
+    const { searchParams } = new URL(request.url);
+
+    const search = (searchParams.get("search") ?? "").trim().slice(0, 100);
+    const departmentId = (
+      searchParams.get("department") ?? ""
+    ).trim().slice(0, 100);
+
+    const requestedPage = Number(searchParams.get("page") ?? "1");
+    const requestedLimit = Number(searchParams.get("limit") ?? "10");
+
+    const page =
+      Number.isInteger(requestedPage) && requestedPage > 0
+        ? requestedPage
+        : 1;
+
+    const limit =
+      Number.isInteger(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, 50)
+        : 10;
+
+    
+const where = {
+  ...(search
+    ? {
+        OR: [
+          {
+            employee_id: {
+              contains: search,
+            },
+          },
+          {
+            full_name: {
+              contains: search,
+            },
+          },
+          {
+            work_email: {
+              contains: search,
+            },
+          },
+        ],
+      }
+    : {}),
+  ...(departmentId ? { department_id: departmentId } : {}),
+};
+
+    const [employees, total, departments] = await Promise.all([
+      prisma.employee.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { employee_id: "asc" },
+        select: {
+          employee_id: true,
+          full_name: true,
+          work_email: true,
+          department: {
+            select: {
+              department_id: true,
+              department_name: true,
+            },
+          },
+          role: {
+            select: {
+              role_title: true,
+              level: true,
+            },
+          },
+          work_location: true,
+          work_mode: true,
+          employment_type: true,
+          hire_date: true,
+          manager: {
+            select: {
+              employee_id: true,
+              full_name: true,
+            },
+          },
+        },
+      }),
+      prisma.employee.count({ where }),
+      prisma.department.findMany({
+        orderBy: { department_name: "asc" },
+        select: {
+          department_id: true,
+          department_name: true,
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       success: true,
-      count: employees.length,
       data: employees,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+      departments,
     });
   } catch (error) {
     console.error("Employees API error:", error);
@@ -105,7 +171,7 @@ export async function GET(request: NextRequest) {
         success: false,
         message: "Unable to authenticate or fetch employees.",
       },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }

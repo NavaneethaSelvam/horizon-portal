@@ -11,6 +11,7 @@ import {
   AlertCircle,
   MessageCircle,
 } from "lucide-react";
+import { EmployeeDirectory } from "@/components/employees/employee-directory";
 import type { LucideIcon } from "lucide-react";
 
 import { PortalShell } from "@/components/layout/portal-shell";
@@ -276,6 +277,26 @@ export default async function SectionPage({
   if (!page) {
     notFound();
   }
+
+  if (section === "employees") {
+  return (
+    <PortalShell>
+      <div>
+        <p className="text-sm font-semibold text-primary">
+          HORIZON WORKSPACE
+        </p>
+        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+          Employee Directory
+        </h1>
+        <p className="mt-2 text-sm text-muted">
+          Search and explore the organisation directory.
+        </p>
+      </div>
+
+      <EmployeeDirectory />
+    </PortalShell>
+  );
+}
 
   if (section === "login") {
     return (
