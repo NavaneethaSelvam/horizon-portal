@@ -1,144 +1,157 @@
-# Horizon Portal — Task 1
+# Horizon Portal — GrowMar Aura Workforce
 
-A Next.js App Router + TypeScript + Tailwind CSS design-system showcase for the GrowMar Aura Workforce Horizon Portal training project.
+A responsive workforce portal developed as part of the GrowMar Aura Workforce training project.
 
-> **Scope:** Task 1 only. This project does not include a database, Prisma, seed data, employee API, authentication, role-based access, or employee directory.
+## Project Overview
 
-## Included
+Horizon Portal is a Next.js application designed to provide a foundation for a workforce management system, including a design system, database integration, authentication, role-based access, application navigation, and an employee directory.
 
-- Next.js App Router and TypeScript
-- Tailwind CSS v4
-- Design tokens in `design/design_tokens.json`
-- Reusable Button, Input, Card, and Badge components
-- Light/dark mode toggle
-- Responsive `/design` showcase
-- Simple home page with a link to `/design`
-- Accessibility features such as labels, error associations, focus states, and disabled states
+## Technology Stack
 
-**Design-token note:** The included palette is a Horizon-inspired implementation default because the official `design_tokens.json` and `HORIZON_DESIGN_SYSTEM.html` were not supplied during generation. Replace these defaults with the official kit files if your programme provides them.
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- Prisma ORM
+- SQLite (local development database)
+- Next.js API routes
+- Lucide React
+- next-themes
 
-## Prerequisites
+## Phase 1 Tasks
 
-- Node.js 20 or newer (Node.js 22 LTS is recommended)
+### Task 1 — UI Foundation and Design System
+- Application foundation and responsive layout
+- Centralised design tokens
+- Reusable UI components
+- Light and dark theme support
+- Design showcase page
+
+### Task 2 — Database and Employee API
+- Prisma database integration
+- Database schema and employee data
+- Employee API foundation
+- Seed and validation improvements
+
+### Task 3 — Authentication and Role Login
+- Login interface and authentication flow
+- Role-aware access and navigation
+- Session handling and authentication-related UI
+
+### Task 4 — Application Shell and UI States
+- Main portal navigation
+- Sidebar and responsive layout
+- Application interface and UI states
+- Theme support
+
+### Task 5 — Employee Directory
+- Employee directory interface
+- Employee listing and related UI
+- Directory integration with the portal
+
+Refer to the source code and screenshots for the implementation details of each task.
+
+## Screenshots
+
+The repository contains screenshots organised by task:
+
+- `Task1_Screenshots/`
+- `Task2_Screenshots/`
+- `Task3_Screenshots/`
+- `Task4_Screenshots/`
+- `Task5_Screenshots/`
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20 or newer
 - npm
-- VS Code
+- Git
+- VS Code (recommended)
 
-Check your installed versions in a terminal:
+### Installation
 
-```powershell
-node --version
-npm --version
+Clone the repository:
+
+```bash
+git clone https://github.com/NavaneethaSelvam/horizon-portal.git
+cd horizon-portal
 ```
 
-## Install and run on Windows
+Install dependencies:
 
-1. Extract `horizon-portal-task1.zip`.
-2. Open the extracted `horizon-portal` folder in VS Code.
-3. In VS Code, select **Terminal → New Terminal**.
-4. Run:
+```bash
+npm install
+```
+
+On Windows PowerShell, if script execution blocks npm, use:
 
 ```powershell
-npm install
+npm.cmd install
+```
+
+### Environment Configuration
+
+Review `.env.example` and configure any required local environment variables. Do not commit `.env` files containing credentials, secrets, or private configuration.
+
+### Database Setup
+
+Review the Prisma schema and project scripts in `package.json` before running database commands. Follow the setup instructions applicable to the current database configuration.
+
+### Run the Development Server
+
+```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000).
-6. Open [http://localhost:3000/design](http://localhost:3000/design) to review the four components.
-
-Stop the development server with `Ctrl+C`.
-
-## Build and lint
+On Windows PowerShell:
 
 ```powershell
-npm run lint
-npm run build
+npm.cmd run dev
 ```
 
-Start the production build after a successful build:
+Open [http://localhost:3000](http://localhost:3000).
 
-```powershell
-npm run start
+## Quality Checks
+
+Run linting:
+
+```bash
+npm.cmd run lint
 ```
 
-## Folder structure
+Run a production build:
 
-```text
-horizon-portal/
-├── design/design_tokens.json
-├── src/
-│   ├── app/
-│   │   ├── design/page.tsx
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/
-│   │   ├── theme-provider.tsx
-│   │   └── ui/
-│   │       ├── badge.tsx
-│   │       ├── button.tsx
-│   │       ├── card.tsx
-│   │       ├── input.tsx
-│   │       └── theme-toggle.tsx
-│   └── lib/utils.ts
-├── package.json
-├── README.md
-└── ...
+```bash
+npm.cmd run build
 ```
 
-## Design tokens and colours
+Run the TypeScript check:
 
-The JSON token catalogue is stored at `design/design_tokens.json`. Runtime theme variables are declared in `src/app/globals.css` so Tailwind CSS v4 can use them as named utilities. Keep colour values centralised in these token declarations; components should use utilities such as `bg-primary`, `text-foreground`, `border-border`, and `text-muted`.
-
-The runtime CSS variables mirror the JSON token catalogue. When changing the palette, update both files so they stay aligned.
-
-### Check for hard-coded hex colours
-
-The task's intended rule is no hard-coded hex colours in application code outside the design token file. In this starter implementation, runtime CSS variable declarations in `src/app/globals.css` are the runtime token layer and mirror `design/design_tokens.json`; this is documented because CSS variables must be defined for the browser to apply the theme.
-
-To search source files in PowerShell:
-
-```powershell
-Get-ChildItem src -Recurse -File | Select-String -Pattern '#[0-9A-Fa-f]{3,8}\b'
+```bash
+npx.cmd tsc --noEmit
 ```
 
-This reports the CSS variable token declarations in `globals.css`. If your reviewer strictly requires all hex values to exist only in one JSON file, move the values into a generated CSS token file or adopt the official token pipeline supplied in your kit, then repeat the search.
+Run these checks in your local environment and review the output before reporting the results.
 
-## Theme
+## Repository
 
-Use the **Dark mode / Light mode** toggle in the header. The preference is managed by `next-themes` and applied through a class on the HTML element.
+GitHub: https://github.com/NavaneethaSelvam/horizon-portal
 
-## Git setup
+Default branch: `main`
 
-```powershell
-git init
-git add .
-git commit -m "Complete Horizon Portal Task 1 design system"
-```
+Repository visibility: Public
 
-Create a private GitHub repository named `horizon-portal`, then follow GitHub's instructions to add the remote and push the repository. Do not commit credentials or `.env` files.
+## Security Notes
 
-## Troubleshooting
+- Never commit passwords, access tokens, API keys, or production credentials.
+- Keep local `.env` files out of version control.
+- Use mock or appropriately sanitised data for demonstrations.
+- Review authentication and authorisation before using the application with real employee information.
 
-### `npm` or `npx` scripts are blocked in PowerShell
+## Project Status
 
-Try `npm.cmd install` or `npm.cmd run dev` instead of `npm`.
+Phase 1 implementation work and task screenshots are maintained in this repository. Refer to the source code, commits, and task screenshots for implementation evidence.
 
-### Port 3000 is already in use
-
-Stop the other development server or run:
-
-```powershell
-npm run dev -- --port 3001
-```
-
-### Dependencies appear broken
-
-Delete `node_modules` and `package-lock.json`, then run `npm install` again. Do not delete your source files.
-
-### Dark mode looks unchanged
-
-Use the theme toggle in the page header and refresh once. Ensure JavaScript is enabled and the `next-themes` package installed successfully.
-
-## Verification status
-
-This ZIP is generated from source files. A real dependency installation, browser run, lint, and production build must be executed in your environment before claiming those checks passed. No test is represented as passed here unless it has actually been run.
+**Note:** Features and verification status should be confirmed against the current source code and local test results before production use.
