@@ -11,6 +11,8 @@ import {
   Search,
   Users,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/states";
+import Link from "next/link";
 
 type Department = {
   department_id: string;
@@ -286,24 +288,7 @@ export function EmployeeDirectory() {
       )}
 
       {!loading && !error && employees.length === 0 && (
-        <div className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-dashed border-border p-6 text-center">
-          <Users className="size-8 text-muted" />
-          <h2 className="mt-3 font-semibold">No employees found</h2>
-          <p className="mt-1 text-sm text-muted">
-            Try another search term or choose a different department.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setSearch("");
-              setDepartment("");
-              setPage(1);
-            }}
-            className="mt-4 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted/30"
-          >
-            Clear filters
-          </button>
-        </div>
+        <EmptyState title="No employees found" description="Try another search term or choose a different department." action={<button type="button" onClick={() => { setSearch(""); setDepartment(""); setPage(1); }} className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-muted/30">Clear filters</button>} />
       )}
 
       {!loading && !error && employees.length > 0 && (
@@ -324,9 +309,7 @@ export function EmployeeDirectory() {
                     </div>
 
                     <div className="min-w-0">
-                      <h2 className="truncate font-semibold">
-                        {employee.full_name}
-                      </h2>
+                      <h2 className="truncate font-semibold"><Link href={`/employees/${encodeURIComponent(employee.employee_id)}`} className="rounded-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">{employee.full_name}</Link></h2>
                       <p className="mt-0.5 text-xs text-muted">
                         {employee.employee_id}
                       </p>

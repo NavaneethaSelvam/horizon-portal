@@ -5,6 +5,7 @@
 
 # Next.js
 /.next/
+/.next-dev/
 /out/
 
 # Production
@@ -35,6 +36,7 @@ next-env.d.ts
 /prisma/*.db-*
 /prisma/*.backup.db
 /prisma/*.db.backup
+/prisma/.phase2-integration-*.db*
 
 # Local application logs
 next-startup.log

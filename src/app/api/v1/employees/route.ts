@@ -1,9 +1,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
+import { prisma } from "@/lib/server";
 
-const prisma = new PrismaClient();
 const SESSION_COOKIE = "horizon_session";
 
 function getSessionSecret() {
@@ -45,6 +44,7 @@ export async function GET(request: NextRequest) {
         username: true,
         role: true,
         is_active: true,
+        employee_id: true,
       },
     });
 
@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       !user ||
       !user.is_active ||
       user.role !== payload.role ||
+      !user.employee_id ||
       !allowedRoles.includes(user.role ?? "")
     ) {
       return NextResponse.json(
@@ -61,6 +62,9 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const employeeAccount = await prisma.employee.findUnique({ where: { employee_id: user.employee_id }, select: { is_active: true } });
+    if (!employeeAccount?.is_active) return NextResponse.json({ success: false, message: "Your session is no longer valid." }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
 

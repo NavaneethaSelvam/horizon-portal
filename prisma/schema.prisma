@@ -40,6 +40,7 @@ model Employee {
   work_mode       String?
   employment_type String?
   hire_date       String?
+  is_active       Boolean  @default(true)
 
   department     Department? @relation(fields: [department_id], references: [department_id])
   role           Role?       @relation(fields: [role_id], references: [role_id])
@@ -48,6 +49,9 @@ model Employee {
   payslips       Payslip[]
   leave_balances LeaveBalance[]
   leave_requests LeaveRequest[]
+  notifications  Notification[]
+  audit_entries  AuditLog[] @relation("AuditActor")
+  @@unique([work_email])
   @@map("employees")
 }
 
@@ -139,10 +143,39 @@ model LeaveRequest {
   applied_on       String?
   approver_id      String?
   decided_on       String?
+  rejection_reason String?
+  balance_reserved Boolean @default(false)
 
   employee   Employee  @relation(fields: [employee_id], references: [employee_id])
   leave_type LeaveType @relation(fields: [leave_type_code], references: [leave_type_code])
   @@map("leave_requests")
+}
+
+model Notification {
+  notification_id String   @id
+  user_id         String
+  title           String
+  message         String
+  is_read         Boolean  @default(false)
+  created_at      String
+  idempotency_key String?  @unique
+  employee        Employee @relation(fields: [user_id], references: [employee_id], onDelete: Cascade)
+  @@index([user_id, is_read, created_at])
+  @@map("notifications")
+}
+
+model AuditLog {
+  audit_id       String   @id
+  actor_id       String
+  action         String
+  employee_id    String
+  changed_field  String?
+  old_value      String?
+  new_value      String?
+  created_at     String
+  actor          Employee @relation("AuditActor", fields: [actor_id], references: [employee_id])
+  @@index([employee_id, created_at])
+  @@map("audit_log")
 }
 
 model Holiday {

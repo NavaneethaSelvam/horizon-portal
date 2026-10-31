@@ -1,9 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/server";
 
 const SESSION_COOKIE = "horizon_session";
 
@@ -51,6 +49,7 @@ export async function GET(
         username: true,
         role: true,
         is_active: true,
+        employee_id: true,
       },
     });
 
@@ -60,6 +59,7 @@ export async function GET(
       !user ||
       !user.is_active ||
       user.role !== payload.role ||
+      !user.employee_id ||
       !allowedRoles.includes(user.role ?? "")
     ) {
       return NextResponse.json(
@@ -67,6 +67,9 @@ export async function GET(
         { status: 401 }
       );
     }
+
+    const employeeAccount = await prisma.employee.findUnique({ where: { employee_id: user.employee_id }, select: { is_active: true } });
+    if (!employeeAccount?.is_active) return NextResponse.json({ success: false, message: "Invalid session." }, { status: 401 });
 
     // 3. Read the requested employee ID
     const { id } = await context.params;

@@ -68,6 +68,7 @@ The repository contains screenshots organised by task:
 - Node.js 20 or newer
 - npm
 - Git
+- Python 3 (the isolated SQLite migration/API integration tests use the standard library)
 - VS Code (recommended)
 
 ### Installation
@@ -93,11 +94,11 @@ npm.cmd install
 
 ### Environment Configuration
 
-Review `.env.example` and configure any required local environment variables. Do not commit `.env` files containing credentials, secrets, or private configuration.
+Copy `.env.example` to `.env`. Set `DATABASE_URL` and a random `SESSION_SECRET` of at least 32 characters. Never use the example value outside local development, and do not commit `.env`.
 
 ### Database Setup
 
-Review the Prisma schema and project scripts in `package.json` before running database commands. Follow the setup instructions applicable to the current database configuration.
+The application uses the existing Prisma schema and SQLite database. The Phase 2 migrations are additive; generate the client with `npx prisma generate`. Before running `npx prisma migrate deploy`, inspect the target database's `_prisma_migrations` history and take a backup. The historical `20261020155234_map_table_names` migration drops the original PascalCase tables without copying their rows, so do not apply it to a populated Phase 1 database where it is still pending; resolve that migration history with a data-preserving plan first. `npm run seed` reloads the supplied demo datasets and clears existing seeded tables before inserting them, so use it only on a disposable development database. It is not a production migration or safe for preserving local records.
 
 ### Run the Development Server
 
@@ -121,6 +122,12 @@ Run linting:
 npm.cmd run lint
 ```
 
+Run unit checks:
+
+```powershell
+npm.cmd test
+```
+
 Run a production build:
 
 ```bash
@@ -133,7 +140,31 @@ Run the TypeScript check:
 npx.cmd tsc --noEmit
 ```
 
-Run these checks in your local environment and review the output before reporting the results.
+Run these checks and review their output before reporting results. Detailed verification is recorded in [docs/phase2-verification.md](docs/phase2-verification.md).
+
+## Phase 2 API and routes
+
+- `/leave` — self-service balances, requests, holidays and latest attendance summary.
+- `/attendance` — role-scoped monthly attendance summaries from existing attendance records.
+- `/payslips` — employee-owned payslips, itemized values and browser print/save.
+- `/notifications` — private inbox, persistent read state and shared announcements.
+- `/admin` — HR/Admin employee search, department filter, create/edit/deactivate and filtered CSV export.
+- `/audit-history` — HR/Admin-only employee change history with field filtering and pagination.
+- `/approvals` — HR/Admin queue; managers are limited to direct reports and team members represented by assigned tasks.
+- `GET/POST /api/v1/leave`, `GET /api/v1/payslips`, `GET /api/v1/payslips/{run_id}`.
+- `GET /api/v1/attendance`, `GET /api/v1/admin/audit-history`.
+- `GET /api/v1/notifications`, `POST /api/v1/notifications/{id}/read`.
+- `GET/POST /api/v1/admin/employees`, `PATCH /api/v1/admin/employees/{id}`, `GET/POST /api/v1/approvals`.
+
+Leave requests reserve their category's available balance while pending; approval moves the reserved days to used, and rejection releases the reservation. The supplied balance data only has CL, SL and EL columns; other paid leave categories are blocked until the source balance model provides their entitlement. LOP does not consume a paid leave balance. HR/Admin can review the organization-wide approval queue under their role permissions, while Managers are limited to assigned employees. No automatic manager-absence fallback or reassignment policy is implemented; confirm the approval escalation policy with the organization before production use.
+
+The demo users and workforce datasets are provided for development. Configure demo accounts through the supplied data pack and seed process; passwords are hashed before storage. Do not use demo credentials or seeded employee/salary data in production.
+
+Docker builds the existing application with `docker build -t horizon-portal .` and runs it with `docker run --env-file .env -p 3000:3000 horizon-portal`. Apply database migrations against the configured database before starting the container.
+
+## Verification status
+
+Phase 1 Tasks 1–5 and Phase 2 Tasks 6–10 are assessed requirement by requirement in [docs/phase2-verification.md](docs/phase2-verification.md), including test commands, data blockers and remaining browser checks. Phase 2 is not fully accepted: authoritative ML/BL balances, browser-level verification and organizational approval escalation policy remain outstanding; no manager-absence fallback is implemented.
 
 ## Repository
 

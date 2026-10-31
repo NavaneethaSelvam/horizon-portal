@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DesignTokenStyles } from "@/components/design-token-styles";
 
 export const metadata: Metadata = {
   title: "Horizon Portal | GrowMar",
@@ -24,6 +25,7 @@ export default function RootLayout({
         className="font-sans"
         suppressHydrationWarning
       >
+        <DesignTokenStyles />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

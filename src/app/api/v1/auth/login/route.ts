@@ -1,10 +1,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/server";
 
 const SESSION_COOKIE = "horizon_session";
 const SESSION_DURATION = 60 * 60 * 8; // 8 hours
@@ -58,6 +56,24 @@ export async function POST(request: NextRequest) {
           success: false,
           message: "Invalid username or password.",
         },
+        { status: 401 }
+      );
+    }
+
+    if (!user.employee_id) {
+      return NextResponse.json(
+        { success: false, message: "Invalid username or password." },
+        { status: 401 }
+      );
+    }
+
+    const employee = await prisma.employee.findUnique({
+      where: { employee_id: user.employee_id },
+      select: { is_active: true },
+    });
+    if (!employee?.is_active) {
+      return NextResponse.json(
+        { success: false, message: "Invalid username or password." },
         { status: 401 }
       );
     }

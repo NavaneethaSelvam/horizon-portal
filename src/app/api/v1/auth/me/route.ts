@@ -1,9 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/server";
 
 const SESSION_COOKIE = "horizon_session";
 
@@ -20,101 +18,80 @@ function getSessionSecret() {
 }
 
 export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
 
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Not authenticated.",
-        },
-        { status: 401 }
-      );
-    }
-
-    const { payload } = await jwtVerify(
-      token,
-      getSessionSecret()
-    );
-
-    if (typeof payload.sub !== "string") {
-      const response = NextResponse.json(
-        {
-          success: false,
-          message: "Invalid session.",
-        },
-        { status: 401 }
-      );
-
-      response.cookies.set(SESSION_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
-
-      return response;
-    }
-
-    // Check the latest account status and role in the database.
-    const user = await prisma.demoUser.findUnique({
-      where: { username: payload.sub },
-    });
-
-    if (
-      !user ||
-      !user.is_active ||
-      user.role !== payload.role
-    ) {
-      const response = NextResponse.json(
-        {
-          success: false,
-          message: "Session is no longer valid.",
-        },
-        { status: 401 }
-      );
-
-      // Clear the session cookie when the session is invalid.
-      response.cookies.set(SESSION_COOKIE, "", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
-        maxAge: 0,
-      });
-
-      return response;
-    }
-
-    return NextResponse.json({
-      success: true,
-      user: {
-        username: user.username,
-        name: user.full_name,
-        employeeId: user.employee_id,
-        role: user.role,
-      },
-    });
-  } catch {
-    const response = NextResponse.json(
+  if (!token) {
+    return NextResponse.json(
       {
         success: false,
-        message: "Invalid or expired session.",
+        message: "Not authenticated.",
       },
       { status: 401 }
     );
-
-    // Clear an invalid or expired session cookie.
-    response.cookies.set(SESSION_COOKIE, "", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 0,
-    });
-
-    return response;
   }
+
+  const secret = getSessionSecret();
+  let payload: Awaited<ReturnType<typeof jwtVerify>>["payload"];
+  try {
+    ({ payload } = await jwtVerify(token, secret));
+  } catch {
+    return invalidSession();
+  }
+
+  if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+    return invalidSession();
+  }
+  return getSessionUser(payload.sub, payload.role);
+}
+
+async function getSessionUser(username: string, role: string) {
+  const user = await prisma.demoUser.findUnique({
+    where: { username },
+  });
+
+  if (
+    !user ||
+    !user.is_active ||
+    user.role !== role ||
+    !user.employee_id ||
+    !["ADMIN", "HR", "MANAGER", "EMPLOYEE"].includes(user.role ?? "")
+  ) {
+    return invalidSession();
+  }
+
+  const employee = await prisma.employee.findUnique({
+    where: { employee_id: user.employee_id },
+    select: { is_active: true },
+  });
+  if (!employee?.is_active) return invalidSession();
+
+  return NextResponse.json({
+    success: true,
+    user: {
+      username: user.username,
+      name: user.full_name,
+      employeeId: user.employee_id,
+      role: user.role,
+    },
+  });
+}
+
+function invalidSession() {
+  const response = NextResponse.json(
+    {
+      success: false,
+      message: "Invalid or expired session.",
+    },
+    { status: 401 }
+  );
+
+  response.cookies.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+
+  return response;
 }

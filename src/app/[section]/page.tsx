@@ -1,590 +1,143 @@
-
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import {
-  ArrowRight,
-  Download,
-  Plus,
-  CalendarDays,
-  CircleCheck,
-  Clock3,
-  AlertCircle,
-  MessageCircle,
-} from "lucide-react";
-import { EmployeeDirectory } from "@/components/employees/employee-directory";
-import type { LucideIcon } from "lucide-react";
-
+import { notFound, redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { PortalShell } from "@/components/layout/portal-shell";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { EmployeeDirectory } from "@/components/employees/employee-directory";
+import { Phase2Workspace } from "@/components/phase2/phase2-workspace";
+import { AttendanceWorkspace } from "@/components/phase2/attendance-workspace";
+import { AuditHistory } from "@/components/admin/audit-history";
+import { PayrollWorkspace, FinanceWorkspace } from "@/components/operations/workspace-tables";
+import { AssistantChat } from "@/components/assistant/assistant-chat";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/states";
+import { getUserFromToken, managerAssignedEmployeeIds, prisma } from "@/lib/server";
 
-const pages: Record<string, { title: string; description: string }> = {
-  profile: {
-    title: "My Profile",
-    description: "Your employee information and reporting details.",
-  },
-  employees: {
-    title: "Employee Directory",
-    description: "Search and explore the organisation directory.",
-  },
-  leave: {
-    title: "Leave Management",
-    description: "Review balances, requests and leave history.",
-  },
-  payslips: {
-    title: "My Payslips",
-    description: "Explore monthly payslip summaries.",
-  },
-  admin: {
-    title: "Employee Management",
-    description: "Admin workspace for employee records.",
-  },
-  approvals: {
-    title: "Approvals",
-    description: "Review requests awaiting a decision.",
-  },
-  payroll: {
-    title: "Payroll Runs",
-    description: "Explore payroll run summaries and statuses.",
-  },
-  finance: {
-    title: "Finance",
-    description: "Review illustrative invoices and expenses.",
-  },
-  "team-board": {
-    title: "Team Board",
-    description: "A sample Kanban workspace for team tasks.",
-  },
-  insights: {
-    title: "AI Insights",
-    description: "Sample risk and anomaly cards for human review.",
-  },
-  assistant: {
-    title: "HR Assistant",
-    description: "Explore sample HR policy questions.",
-  },
-  login: {
-    title: "Sign in",
-    description:
-      "Login UI preview. Secure authentication is added in the authentication task.",
-  },
+const pages = {
+  profile: { title: "My Profile", description: "Your employee information and reporting details." },
+  employees: { title: "Employee Directory", description: "Search and explore the organisation directory." },
+  leave: { title: "Leave Management", description: "Review balances, requests and leave history." },
+  attendance: { title: "Attendance", description: "Review monthly attendance summaries." },
+  payslips: { title: "My Payslips", description: "Explore monthly payslip summaries." },
+  admin: { title: "Employee Management", description: "Admin workspace for employee records." },
+  "audit-history": { title: "Audit History", description: "Review employee record changes and their actors." },
+  approvals: { title: "Approvals", description: "Review requests awaiting a decision." },
+  notifications: { title: "Notifications", description: "Your private inbox and organisation announcements." },
+  payroll: { title: "Payroll Runs", description: "Source payroll-run summaries and statuses." },
+  finance: { title: "Finance", description: "Source invoice balances and payment statuses." },
+  "team-board": { title: "Team Board", description: "Task assignments in your permitted teams." },
+  insights: { title: "AI Insights", description: "Training dataset risk and anomaly outputs." },
+  assistant: { title: "HR Assistant", description: "Search the configured HR FAQ dataset." },
+} as const;
+
+const restrictedRoles: Record<string, string[]> = {
+  admin: ["ADMIN", "HR"],
+  "audit-history": ["ADMIN", "HR"],
+  approvals: ["ADMIN", "HR", "MANAGER"],
+  payroll: ["ADMIN", "HR"],
+  finance: ["ADMIN"],
+  "team-board": ["ADMIN", "MANAGER"],
+  insights: ["ADMIN", "HR", "MANAGER"],
+  attendance: ["ADMIN", "HR", "MANAGER", "EMPLOYEE"],
 };
 
-const sampleEmployees = [
-  {
-    id: "GM00017",
-    name: "Navaneetha S",
-    department: "Engineering",
-    role: "Frontend Developer",
-    status: "Active",
-  },
-  {
-    id: "GM00018",
-    name: "Arun Kumar",
-    department: "Human Resources",
-    role: "HR Executive",
-    status: "Active",
-  },
-  {
-    id: "GM00019",
-    name: "Priya R",
-    department: "Finance",
-    role: "Finance Analyst",
-    status: "Active",
-  },
-  {
-    id: "GM00020",
-    name: "Karthik M",
-    department: "Engineering",
-    role: "Software Engineer",
-    status: "On leave",
-  },
-];
-
-const teamColumns: { title: string; tasks: string[] }[] = [
-  {
-    title: "To Do",
-    tasks: ["Review onboarding checklist", "Prepare team notes"],
-  },
-  {
-    title: "In Progress",
-    tasks: ["Update employee portal"],
-  },
-  {
-    title: "Blocked",
-    tasks: ["Waiting for approval"],
-  },
-  {
-    title: "Done",
-    tasks: ["Create project structure"],
-  },
-];
-
-const leaveCards: {
-  title: string;
-  value: string;
-  Icon: LucideIcon;
-}[] = [
-  {
-    title: "Annual leave",
-    value: "12 days",
-    Icon: CalendarDays,
-  },
-  {
-    title: "Sick leave",
-    value: "6 days",
-    Icon: Clock3,
-  },
-  {
-    title: "Requests awaiting review",
-    value: "2",
-    Icon: AlertCircle,
-  },
-];
-
-const employmentDetails: [string, string][] = [
-  ["Department", "Engineering"],
-  ["Job title", "Frontend Developer"],
-  ["Work email", "navanee@growmar.in"],
-  ["Reporting manager", "Demo Manager"],
-  ["Location", "India"],
-  ["Employment status", "Active"],
-];
-
-function PageTable({ section }: { section: string }) {
-  let headers: string[] = ["Reference", "Name", "Department", "Status"];
-
-  let rows: string[][] = sampleEmployees.map((employee) => [
-    employee.id,
-    employee.name,
-    employee.department,
-    employee.status,
-  ]);
-
-  if (section === "approvals" || section === "leave") {
-    headers = ["Request", "Employee", "Type", "Status"];
-
-    rows = [
-      ["LR-1042", "Navaneetha S", "Annual leave", "Pending"],
-      ["LR-1043", "Arun Kumar", "Sick leave", "Pending"],
-      ["LR-1044", "Priya R", "Annual leave", "Approved"],
-    ];
-  } else if (section === "payroll" || section === "payslips") {
-    headers = ["Reference", "Period", "Net amount", "Status"];
-
-    rows = [
-      ["PR-2026-09", "September 2026", "₹32,500", "Completed"],
-      ["PR-2026-08", "August 2026", "₹31,800", "Completed"],
-      ["PR-2026-07", "July 2026", "₹31,800", "Completed"],
-    ];
-  } else if (section === "finance") {
-    headers = ["Reference", "Description", "Amount", "Status"];
-
-    rows = [
-      ["INV-001", "Office supplies", "₹18,500", "Pending"],
-      ["INV-002", "Software services", "₹42,000", "Approved"],
-      ["INV-003", "Equipment", "₹27,500", "Pending"],
-    ];
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Records</CardTitle>
-      </CardHeader>
-
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-muted">
-                {headers.map((header) => (
-                  <th
-                    key={header}
-                    className="px-3 py-3 font-semibold"
-                  >
-                    {header}
-                  </th>
-                ))}
-
-                <th className="px-3 py-3 font-semibold">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row[0]}
-                  className="border-b border-border last:border-0"
-                >
-                  {row.map((value, index) => (
-                    <td key={index} className="px-3 py-4">
-                      {index === row.length - 1 ? (
-                        <Badge
-                          variant={
-                            value === "Pending" ||
-                            value === "On leave"
-                              ? "warning"
-                              : "success"
-                          }
-                        >
-                          {value}
-                        </Badge>
-                      ) : (
-                        value
-                      )}
-                    </td>
-                  ))}
-
-                  <td className="px-3 py-4">
-                    <Button
-                      variant="secondary"
-                      className="min-h-8 px-3 py-1 text-xs"
-                    >
-                      View
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <p className="mt-4 text-xs text-muted">
-          Sample preview data. Live database connection will be
-          added in the backend task.
-        </p>
-      </CardContent>
-    </Card>
-  );
+function Heading({ title, description }: { title: string; description: string }) {
+  return <div><p className="text-sm font-semibold text-primary">HORIZON WORKSPACE</p><h1 className="mt-2 text-2xl font-bold sm:text-3xl">{title}</h1><p className="mt-2 text-sm text-muted">{description}</p></div>;
 }
 
-export default async function SectionPage({
-  params,
-}: {
-  params: Promise<{ section: string }>;
-}) {
+export default async function SectionPage({ params }: { params: Promise<{ section: string }> }) {
   const { section } = await params;
-  const page = pages[section];
+  const page = pages[section as keyof typeof pages];
+  if (!page) notFound();
 
-  if (!page) {
-    notFound();
+  let user: Awaited<ReturnType<typeof getUserFromToken>> = null;
+  if (restrictedRoles[section] || ["profile", "assistant"].includes(section)) {
+    const cookieStore = await cookies();
+    user = await getUserFromToken(cookieStore.get("horizon_session")?.value);
+    if (!user) redirect("/login");
+    if (restrictedRoles[section] && !restrictedRoles[section].includes(user.role)) redirect("/");
   }
 
-  if (section === "employees") {
-  return (
-    <PortalShell>
-      <div>
-        <p className="text-sm font-semibold text-primary">
-          HORIZON WORKSPACE
-        </p>
-        <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-          Employee Directory
-        </h1>
-        <p className="mt-2 text-sm text-muted">
-          Search and explore the organisation directory.
-        </p>
-      </div>
-
-      <EmployeeDirectory />
-    </PortalShell>
-  );
-}
-
-  if (section === "login") {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
-            <p className="text-sm text-muted">
-              Sign in to your Horizon workspace.
-            </p>
-          </CardHeader>
-
-          <CardContent>
-            <form action="/" className="space-y-4">
-              <Input
-                label="Work email"
-                type="email"
-                placeholder="you@company.com"
-                required
-              />
-
-              <Input
-                label="Password"
-                type="password"
-                placeholder="Enter password"
-                required
-              />
-
-              <p className="text-xs text-muted">
-                This is a UI preview. Authentication is not connected yet.
-              </p>
-
-              <Button type="submit" className="w-full">
-                Continue
-              </Button>
-            </form>
-
-            <div className="mt-5 rounded-lg bg-background p-3 text-xs text-muted">
-              Demo login buttons and secure sessions will be connected
-              in HP-03.
-            </div>
-          </CardContent>
-        </Card>
-      </main>
-    );
+  if (section === "employees") return <PortalShell><Heading title={page.title} description={page.description} /><EmployeeDirectory /></PortalShell>;
+  if (section === "attendance" && user) return <PortalShell><Heading title={page.title} description={page.description} /><AttendanceWorkspace /></PortalShell>;
+  if (section === "audit-history" && user) return <PortalShell><Heading title={page.title} description={page.description} /><AuditHistory /></PortalShell>;
+  if (["leave", "payslips", "notifications", "admin", "approvals"].includes(section)) {
+    return <PortalShell><Heading title={page.title} description={page.description} /><Phase2Workspace section={section} /></PortalShell>;
   }
 
-  return (
-    <PortalShell>
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <p className="text-sm font-semibold text-primary">
-            HORIZON WORKSPACE
-          </p>
+  if (section === "profile" && user) {
+    const employee = await prisma.employee.findUnique({
+      where: { employee_id: user.employeeId },
+      select: {
+        employee_id: true, full_name: true, work_email: true, work_location: true, work_mode: true,
+        employment_type: true, hire_date: true, is_active: true,
+        department: { select: { department_name: true } }, role: { select: { role_title: true } },
+        manager: { select: { employee_id: true, full_name: true } },
+      },
+    });
+    if (!employee) return <PortalShell><Heading title={page.title} description={page.description} /><EmptyState title="Profile not found" description="Your employee record could not be loaded." /></PortalShell>;
+    const initials = employee.full_name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("");
+    const details = [
+      ["Department", employee.department?.department_name ?? "Not assigned"],
+      ["Job title", employee.role?.role_title ?? "Not assigned"],
+      ["Work email", employee.work_email],
+      ["Reporting manager", employee.manager ? `${employee.manager.full_name} (${employee.manager.employee_id})` : "No reporting manager"],
+      ["Location", employee.work_location ?? "Not specified"],
+      ["Work mode", employee.work_mode ?? "Not specified"],
+      ["Employment type", employee.employment_type ?? "Not specified"],
+      ["Hire date", employee.hire_date ?? "Not specified"],
+    ];
+    return <PortalShell><Heading title={page.title} description={page.description} /><section className="mt-6 grid gap-5 lg:grid-cols-[280px_1fr]">
+      <Card><CardContent className="flex flex-col items-center p-7 text-center"><div aria-hidden="true" className="flex size-20 items-center justify-center rounded-full bg-primary-soft text-xl font-bold text-primary">{initials}</div><h2 className="mt-4 text-xl font-bold">{employee.full_name}</h2><p className="mt-1 text-sm text-muted">{employee.role?.role_title ?? "Employee"}</p><Badge variant={employee.is_active ? "success" : "danger"}>{employee.is_active ? "Active" : "Inactive"}</Badge><p className="mt-3 text-sm text-muted">Employee ID: {employee.employee_id}</p></CardContent></Card>
+      <Card><CardHeader><CardTitle>Employment details</CardTitle></CardHeader><CardContent className="grid gap-5 sm:grid-cols-2">{details.map(([label, value]) => <div key={label}><p className="text-xs text-muted">{label}</p><p className="mt-1 break-words font-semibold">{value}</p></div>)}</CardContent></Card>
+    </section><p className="mt-4 text-xs text-muted">Profile details are read-only here. Compensation information is not shown.</p></PortalShell>;
+  }
 
-          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-            {page.title}
-          </h1>
+  if (section === "payroll") {
+    const runs = await prisma.payrollRun.findMany({ orderBy: [{ period_end: "desc" }, { run_id: "desc" }], take: 100, select: { run_id: true, period_start: true, period_end: true, pay_date: true, employees_paid: true, total_gross: true, total_net: true, status: true } });
+    return <PortalShell><Heading title={page.title} description={page.description} /><PayrollWorkspace runs={runs} /></PortalShell>;
+  }
 
-          <p className="mt-2 text-sm text-muted">
-            {page.description}
-          </p>
-        </div>
+  if (section === "finance") {
+    const records = await prisma.invoice.findMany({ orderBy: [{ invoice_date: "desc" }, { invoice_number: "asc" }], take: 500, select: { invoice_id: true, invoice_number: true, invoice_date: true, due_date: true, currency: true, total_amount: true, amount_paid: true, balance_due: true, status: true, client: { select: { client_name: true } } } });
+    const invoices = records.map(({ client, ...record }) => ({ ...record, client_name: client?.client_name ?? null }));
+    return <PortalShell><Heading title={page.title} description={page.description} /><FinanceWorkspace invoices={invoices} /></PortalShell>;
+  }
 
-        <div className="flex flex-wrap gap-2">
-          {["leave", "admin", "approvals"].includes(section) && (
-            <Button>
-              <Plus className="size-4" />
-              Add new
-            </Button>
-          )}
+  if (section === "team-board" && user) {
+    const [teams, assignedIds] = await Promise.all([
+      prisma.team.findMany({ where: { team_lead_employee_id: user.employeeId }, select: { team_id: true } }),
+      user.role === "ADMIN" ? Promise.resolve([]) : managerAssignedEmployeeIds(user.employeeId),
+    ]);
+    const teamIds = teams.map((team) => team.team_id);
+    const taskWhere = user.role === "ADMIN" ? {} : { OR: [...(teamIds.length ? [{ team_id: { in: teamIds } }] : []), ...(assignedIds.length ? [{ assignee_employee_id: { in: assignedIds } }] : [])] };
+    const tasks = await prisma.task.findMany({ where: taskWhere, orderBy: [{ due_date: "asc" }, { task_id: "asc" }], take: 200, select: { task_id: true, task_type: true, priority: true, status: true, story_points: true, due_date: true, team: { select: { team_name: true } }, sprint: { select: { sprint_name: true } }, assignee_employee_id: true } });
+    const assigneeIds = [...new Set(tasks.map((task) => task.assignee_employee_id).filter((id): id is string => Boolean(id)))];
+    const assignees = await prisma.employee.findMany({ where: { employee_id: { in: assigneeIds } }, select: { employee_id: true, full_name: true } });
+    const names = new Map(assignees.map((employee) => [employee.employee_id, employee.full_name]));
+    return <PortalShell><Heading title={page.title} description={page.description} /><p className="mt-4 text-sm text-muted">Tasks are read-only source dataset records; no work items are created here.</p>
+      {tasks.length ? <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{tasks.map((task) => <Card key={task.task_id}><CardHeader><CardTitle>{task.task_type || task.task_id}</CardTitle><p className="text-xs text-muted">{task.task_id} · {task.team.team_name}</p></CardHeader><CardContent className="space-y-2 text-sm"><p>Status: <Badge variant={task.status?.toLowerCase() === "completed" ? "success" : "warning"}>{task.status || "Unspecified"}</Badge></p><p>Assignee: {task.assignee_employee_id ? names.get(task.assignee_employee_id) ?? task.assignee_employee_id : "Unassigned"}</p><p>Sprint: {task.sprint.sprint_name}</p><p>Priority: {task.priority ?? "Not provided"} · Due: {task.due_date ?? "Not provided"}</p><p>Story points: {task.story_points ?? "Not provided"}</p></CardContent></Card>)}</div> : <div className="mt-5"><EmptyState title="No tasks found" description="There are no source tasks in your permitted team scope." /></div>}
+    </PortalShell>;
+  }
 
-          {["payslips", "payroll", "finance"].includes(section) && (
-            <Button variant="secondary">
-              <Download className="size-4" />
-              Export
-            </Button>
-          )}
-        </div>
-      </div>
+  if (section === "insights" && user) {
+    const assignedIds = user.role === "MANAGER" ? await managerAssignedEmployeeIds(user.employeeId) : null;
+    const [risks, anomalies] = await Promise.all([
+      prisma.aiAttritionRisk.findMany({ where: assignedIds ? { employee_id: { in: assignedIds } } : {}, orderBy: { risk_score_12m: "desc" }, take: 50 }),
+      prisma.aiAnomalyResult.findMany({ where: assignedIds ? { employee_id: { in: assignedIds } } : {}, orderBy: { anomaly_score: "desc" }, take: 50 }),
+    ]);
+    const employeeIds = [...new Set([...risks.map((row) => row.employee_id), ...anomalies.map((row) => row.employee_id)].filter((id): id is string => Boolean(id)))];
+    const employees = await prisma.employee.findMany({ where: { employee_id: { in: employeeIds } }, select: { employee_id: true, full_name: true } });
+    const names = new Map(employees.map((employee) => [employee.employee_id, employee.full_name]));
+    return <PortalShell><Heading title={page.title} description={page.description} /><p className="mt-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">Training dataset model output only. No live AI inference is configured; review these indicators with a human.</p>
+      <div className="mt-4 grid gap-5 xl:grid-cols-2"><Card><CardHeader><CardTitle>Attrition risk predictions</CardTitle></CardHeader><CardContent className="space-y-3">{risks.length ? risks.map((row) => <div key={row.prediction_id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{row.employee_id ? names.get(row.employee_id) ?? row.employee_id : "Department prediction"}</strong><Badge variant={row.risk_band?.toLowerCase() === "high" ? "danger" : "warning"}>{row.risk_band ?? "Unrated"}</Badge></div><p className="mt-1 text-sm text-muted">12-month score: {row.risk_score_12m == null ? "Not provided" : `${(row.risk_score_12m * 100).toFixed(1)}%`}</p><p className="mt-1 text-xs text-muted">{[row.top_reason_1, row.top_reason_2, row.top_reason_3].filter(Boolean).join(" · ") || "No reason provided"}</p></div>) : <p className="text-sm text-muted">No prediction rows in your permitted scope.</p>}</CardContent></Card>
+      <Card><CardHeader><CardTitle>Payroll anomaly results</CardTitle></CardHeader><CardContent className="space-y-3">{anomalies.length ? anomalies.map((row) => <div key={row.result_id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{row.employee_id ? names.get(row.employee_id) ?? row.employee_id : "Unassigned record"}</strong><Badge variant={row.flagged ? "danger" : "success"}>{row.flagged ? "Flagged" : "Not flagged"}</Badge></div><p className="mt-1 text-sm text-muted">{row.reason_text ?? row.reason_code ?? "No reason provided"}</p><p className="mt-1 text-xs text-muted">Period: {row.period ?? "Not provided"} · Score: {row.anomaly_score ?? "Not provided"} · Data version: {row.model_version ?? "Not provided"}</p></div>) : <p className="text-sm text-muted">No anomaly rows in your permitted scope.</p>}</CardContent></Card></div>
+    </PortalShell>;
+  }
 
-      {section === "profile" && (
-        <section className="mt-8 grid gap-6 lg:grid-cols-[300px_1fr]">
-          <Card>
-            <CardContent className="flex flex-col items-center p-8 text-center">
-              <div className="flex size-24 items-center justify-center rounded-full bg-primary-soft text-2xl font-bold text-primary">
-                NS
-              </div>
+  if (section === "assistant" && user) {
+    const faqs = await prisma.faq.findMany({ orderBy: { category: "asc" }, take: 100, select: { question: true, answer: true, category: true } });
+    return <PortalShell><Heading title={page.title} description={page.description} /><AssistantChat faqs={faqs} /></PortalShell>;
+  }
 
-              <h2 className="mt-4 text-xl font-bold">
-                Navaneetha S
-              </h2>
-
-              <p className="mt-1 text-sm text-muted">
-                Frontend Developer
-              </p>
-
-              <Badge variant="success">Active</Badge>
-
-              <p className="mt-4 text-sm text-muted">
-                Employee ID: GM00017
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Employment details</CardTitle>
-            </CardHeader>
-
-            <CardContent className="grid gap-5 sm:grid-cols-2">
-              {employmentDetails.map(([label, value]) => (
-                <div key={label}>
-                  <p className="text-xs text-muted">{label}</p>
-                  <p className="mt-1 font-semibold">{value}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </section>
-      )}
-
-      {section === "team-board" && (
-        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {teamColumns.map((column) => (
-            <Card key={column.title}>
-              <CardHeader>
-                <CardTitle>{column.title}</CardTitle>
-              </CardHeader>
-
-              <CardContent className="space-y-3">
-                {column.tasks.map((task) => (
-                  <div
-                    key={task}
-                    className="rounded-lg border border-border bg-background p-3 text-sm"
-                  >
-                    {task}
-                    <p className="mt-3 text-xs text-muted">
-                      Sample task
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-      )}
-
-      {section === "insights" && (
-        <section className="mt-8 grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardContent className="p-5">
-              <Badge variant="warning">Medium risk</Badge>
-
-              <h2 className="mt-3 font-bold">
-                Workload pattern needs review
-              </h2>
-
-              <p className="mt-2 text-sm text-muted">
-                Illustrative sample: a team member has several
-                overlapping assignments.
-              </p>
-
-              <p className="mt-3 font-semibold">
-                Sample exposure: ₹25,000
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-5">
-              <Badge variant="danger">Review needed</Badge>
-
-              <h2 className="mt-3 font-bold">
-                Payroll anomaly example
-              </h2>
-
-              <p className="mt-2 text-sm text-muted">
-                Illustrative sample: one entry differs from the
-                expected range.
-              </p>
-
-              <p className="mt-3 font-semibold">
-                Sample exposure: ₹12,000
-              </p>
-            </CardContent>
-          </Card>
-
-          <p className="text-sm font-semibold text-muted md:col-span-2">
-            AI-generated, for human review. These are examples,
-            not real findings.
-          </p>
-        </section>
-      )}
-
-      {section === "assistant" && (
-        <Card className="mt-8 max-w-2xl">
-          <CardHeader>
-            <CardTitle>
-              <MessageCircle className="mr-2 inline size-5" />
-              HR Assistant
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            <div className="rounded-lg bg-background p-4 text-sm">
-              Vanakkam! I can help you explore leave policies,
-              payslips and employee profile information in this demo.
-            </div>
-
-            <p className="mt-5 text-sm font-semibold">
-              Suggested questions
-            </p>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/leave"
-                className="rounded-md border border-border px-3 py-2 text-sm hover:border-primary"
-              >
-                How do I apply for leave?
-              </Link>
-
-              <Link
-                href="/payslips"
-                className="rounded-md border border-border px-3 py-2 text-sm hover:border-primary"
-              >
-                Where are my payslips?
-              </Link>
-
-              <Link
-                href="/profile"
-                className="rounded-md border border-border px-3 py-2 text-sm hover:border-primary"
-              >
-                View my profile
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {section === "leave" && (
-        <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          {leaveCards.map(({ title, value, Icon }) => (
-            <Card key={title}>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted">{title}</p>
-                  <Icon className="size-5 text-primary" />
-                </div>
-
-                <p className="mt-3 text-2xl font-bold">{value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-      )}
-
-      {(section === "employees" || section === "admin") && (
-        <div className="mt-8 max-w-sm">
-          <Input
-            label="Search employees"
-            placeholder="Name, ID or department..."
-          />
-        </div>
-      )}
-
-      {![
-        "assistant",
-        "team-board",
-        "insights",
-        "profile",
-      ].includes(section) && (
-        <div className="mt-6">
-          <PageTable section={section} />
-        </div>
-      )}
-
-      <div className="mt-6 flex items-center gap-2 rounded-lg border border-border p-4 text-sm text-muted">
-        <CircleCheck className="size-4 shrink-0 text-success" />
-
-        <span>
-          UI preview with sample data. API, database, loading,
-          empty and error states are to be wired into their
-          respective tasks.
-        </span>
-
-        <ArrowRight className="ml-auto size-4 shrink-0" />
-      </div>
-    </PortalShell>
-  );
+  return notFound();
 }

@@ -22,7 +22,24 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    await jwtVerify(token, getSessionSecret());
+    const { payload } = await jwtVerify(token, getSessionSecret());
+    const pathname = request.nextUrl.pathname;
+    const role = String(payload.role);
+    const accessRules: { prefix: string; roles: string[] }[] = [
+      { prefix: "/admin", roles: ["ADMIN", "HR"] },
+      { prefix: "/audit-history", roles: ["ADMIN", "HR"] },
+      { prefix: "/approvals", roles: ["ADMIN", "HR", "MANAGER"] },
+      { prefix: "/payroll", roles: ["ADMIN", "HR"] },
+      { prefix: "/finance", roles: ["ADMIN"] },
+      { prefix: "/team-board", roles: ["ADMIN", "MANAGER"] },
+      { prefix: "/insights", roles: ["ADMIN", "HR", "MANAGER"] },
+    ];
+    const denied = accessRules.find(({ prefix, roles }) =>
+      (pathname === prefix || pathname.startsWith(`${prefix}/`)) && !roles.includes(role)
+    );
+    if (denied) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
     return NextResponse.next();
   } catch {
     const response = NextResponse.redirect(
@@ -47,6 +64,15 @@ export const config = {
     "/employees/:path*",
     "/profile/:path*",
     "/leave/:path*",
+    "/attendance/:path*",
     "/payroll/:path*",
+    "/payslips/:path*",
+    "/notifications/:path*",
+    "/approvals/:path*",
+    "/admin/:path*",
+    "/audit-history/:path*",
+    "/finance/:path*",
+    "/team-board/:path*",
+    "/insights/:path*",
   ],
 };

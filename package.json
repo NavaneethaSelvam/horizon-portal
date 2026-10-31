@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

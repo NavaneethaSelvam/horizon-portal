@@ -11,6 +11,7 @@ import {
   CalendarDays,
   Wallet,
   ClipboardCheck,
+  History,
   Banknote,
   Receipt,
   KanbanSquare,
@@ -84,6 +85,12 @@ const navigation: NavigationGroup[] = [
         roles: ALL_ROLES,
       },
       {
+        label: "Attendance",
+        href: "/attendance",
+        icon: CalendarDays,
+        roles: ALL_ROLES,
+      },
+      {
         label: "Payslips",
         href: "/payslips",
         icon: Wallet,
@@ -98,6 +105,12 @@ const navigation: NavigationGroup[] = [
         label: "Employees",
         href: "/admin",
         icon: Users,
+        roles: ["ADMIN", "HR"],
+      },
+      {
+        label: "Audit History",
+        href: "/audit-history",
+        icon: History,
         roles: ["ADMIN", "HR"],
       },
       {
@@ -194,6 +207,7 @@ export function PortalShell({
   const [sessionError, setSessionError] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,6 +266,26 @@ if (!cancelled) {
       cancelled = true;
     };
   }, [router]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/notifications", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((result) => { if (!cancelled && typeof result?.unread === "number") setUnreadCount(result.unread); })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [pathname]);
+
+  useEffect(() => {
+    const updateUnread = () => {
+      fetch("/api/v1/notifications", { cache: "no-store" })
+        .then((response) => response.ok ? response.json() : null)
+        .then((result) => { if (typeof result?.unread === "number") setUnreadCount(result.unread); })
+        .catch(() => undefined);
+    };
+    window.addEventListener("horizon:notifications-updated", updateUnread);
+    return () => window.removeEventListener("horizon:notifications-updated", updateUnread);
+  }, []);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -554,18 +588,15 @@ if (!cancelled) {
               {formatRole(user?.role)}
             </span>
 
-            <button
-              type="button"
-              aria-label="Notifications"
+            <Link
+              href="/notifications"
+              aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
               title="Notifications"
               className="relative rounded-md border border-border p-2 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Bell aria-hidden="true" className="size-5" />
-              <span
-                aria-hidden="true"
-                className="absolute right-1 top-1 size-2 rounded-full bg-primary"
-              />
-            </button>
+              {unreadCount > 0 && <span className="absolute -right-2 -top-2 min-w-5 rounded-full bg-primary px-1 text-center text-xs font-bold text-primary-foreground">{unreadCount > 99 ? "99+" : unreadCount}</span>}
+            </Link>
 
             <ThemeToggle />
           </div>
