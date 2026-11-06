@@ -253,6 +253,9 @@ test("admin, audit, approval and operational pages are role-gated in middleware"
   const financeDenied = await api.middleware.middleware(await request("hr", "HR", "GET", undefined, "http://localhost/finance"));
   assert.equal(financeDenied.status, 307);
   assert.equal(financeDenied.headers.get("location"), "http://localhost/");
+  const managerFinanceDenied = await api.middleware.middleware(await request("m1", "MANAGER", "GET", undefined, "http://localhost/finance"));
+  assert.equal(managerFinanceDenied.status, 307);
+  assert.equal(managerFinanceDenied.headers.get("location"), "http://localhost/");
   assert.equal((await api.middleware.middleware(await request("m1", "MANAGER", "GET", undefined, "http://localhost/team-board"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("hr", "HR", "GET", undefined, "http://localhost/payroll"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("admin", "ADMIN", "GET", undefined, "http://localhost/finance"))).status, 200);

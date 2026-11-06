@@ -98,9 +98,72 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
   }
 
   if (section === "finance") {
-    const records = await prisma.invoice.findMany({ orderBy: [{ invoice_date: "desc" }, { invoice_number: "asc" }], take: 500, select: { invoice_id: true, invoice_number: true, invoice_date: true, due_date: true, currency: true, total_amount: true, amount_paid: true, balance_due: true, status: true, client: { select: { client_name: true } } } });
-    const invoices = records.map(({ client, ...record }) => ({ ...record, client_name: client?.client_name ?? null }));
-    return <PortalShell><Heading title={page.title} description={page.description} /><FinanceWorkspace invoices={invoices} /></PortalShell>;
+    if (!user || user.role !== "ADMIN") redirect("/");
+    const [invoiceRows, expenseRows, vendors, departments] = await Promise.all([
+      prisma.invoice.findMany({
+        orderBy: [{ invoice_date: "desc" }, { invoice_number: "asc" }],
+        take: 1000,
+        select: {
+          invoice_id: true,
+          invoice_number: true,
+          client_id: true,
+          invoice_date: true,
+          due_date: true,
+          currency: true,
+          subtotal: true,
+          gst_rate_percent: true,
+          gst_amount: true,
+          total_amount: true,
+          amount_paid: true,
+          balance_due: true,
+          status: true,
+          last_payment_date: true,
+          po_number: true,
+          client: { select: { client_name: true } },
+        },
+      }),
+      prisma.expense.findMany({
+        orderBy: [{ expense_date: "desc" }, { expense_id: "asc" }],
+        take: 1000,
+        select: {
+          expense_id: true,
+          expense_date: true,
+          category_account: true,
+          vendor_id: true,
+          bill_reference: true,
+          description: true,
+          department_id: true,
+          amount_excl_gst: true,
+          gst_rate_percent: true,
+          gst_amount: true,
+          total_amount: true,
+          due_date: true,
+          paid_date: true,
+          status: true,
+          payment_mode: true,
+          submitted_by: true,
+          approved_by: true,
+        },
+      }),
+      prisma.vendor.findMany({
+        select: { vendor_id: true, vendor_name: true },
+      }),
+      prisma.department.findMany({
+        select: { department_id: true, department_name: true },
+      }),
+    ]);
+    const vendorMap = new Map(vendors.map((v) => [v.vendor_id, v.vendor_name]));
+    const deptMap = new Map(departments.map((d) => [d.department_id, d.department_name]));
+    const invoices = invoiceRows.map(({ client, ...record }) => ({
+      ...record,
+      client_name: client?.client_name ?? null,
+    }));
+    const expenses = expenseRows.map((record) => ({
+      ...record,
+      vendor_name: record.vendor_id ? vendorMap.get(record.vendor_id) ?? null : null,
+      department_name: record.department_id ? deptMap.get(record.department_id) ?? null : null,
+    }));
+    return <PortalShell><Heading title={page.title} description={page.description} /><FinanceWorkspace invoices={invoices} expenses={expenses} /></PortalShell>;
   }
 
   if (section === "team-board" && user) {
