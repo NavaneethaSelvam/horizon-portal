@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts",
+    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts tests/task-board-rules.test.ts tests/workload-rules.test.ts tests/ai-insights.test.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.3",
     "clsx": "2.1.1",

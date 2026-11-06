@@ -15,6 +15,7 @@ import {
   Banknote,
   Receipt,
   KanbanSquare,
+  ChartNoAxesCombined,
   BrainCircuit,
   MessageCircle,
   Search,
@@ -143,10 +144,16 @@ const navigation: NavigationGroup[] = [
         roles: ["ADMIN", "MANAGER"],
       },
       {
+        label: "Workload & Capacity",
+        href: "/workload-capacity",
+        icon: ChartNoAxesCombined,
+        roles: ["ADMIN", "MANAGER"],
+      },
+      {
         label: "AI Insights",
         href: "/insights",
         icon: BrainCircuit,
-        roles: ["ADMIN", "HR", "MANAGER"],
+        roles: ["ADMIN", "HR"],
       },
       {
         label: "HR Assistant",

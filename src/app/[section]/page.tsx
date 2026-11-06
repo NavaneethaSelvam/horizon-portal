@@ -6,11 +6,14 @@ import { Phase2Workspace } from "@/components/phase2/phase2-workspace";
 import { AttendanceWorkspace } from "@/components/phase2/attendance-workspace";
 import { AuditHistory } from "@/components/admin/audit-history";
 import { PayrollWorkspace, FinanceWorkspace } from "@/components/operations/workspace-tables";
+import { TeamTaskBoard } from "@/components/operations/team-task-board";
+import { WorkloadCapacity } from "@/components/operations/workload-capacity";
+import { AiInsightsWorkspace } from "@/components/operations/ai-insights-workspace";
 import { AssistantChat } from "@/components/assistant/assistant-chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/states";
-import { getUserFromToken, managerAssignedEmployeeIds, prisma } from "@/lib/server";
+import { getUserFromToken, prisma } from "@/lib/server";
 
 const pages = {
   profile: { title: "My Profile", description: "Your employee information and reporting details." },
@@ -25,7 +28,8 @@ const pages = {
   payroll: { title: "Payroll Runs", description: "Source payroll-run summaries and statuses." },
   finance: { title: "Finance", description: "Source invoice balances and payment statuses." },
   "team-board": { title: "Team Board", description: "Task assignments in your permitted teams." },
-  insights: { title: "AI Insights", description: "Training dataset risk and anomaly outputs." },
+  "workload-capacity": { title: "Workload & Capacity", description: "Review sprint workload, approved leave and evidence-based capacity." },
+  insights: { title: "AI Insights", description: "Aggregate AI-generated sample outputs for HR and Admin review." },
   assistant: { title: "HR Assistant", description: "Search the configured HR FAQ dataset." },
 } as const;
 
@@ -36,7 +40,8 @@ const restrictedRoles: Record<string, string[]> = {
   payroll: ["ADMIN", "HR"],
   finance: ["ADMIN"],
   "team-board": ["ADMIN", "MANAGER"],
-  insights: ["ADMIN", "HR", "MANAGER"],
+  "workload-capacity": ["ADMIN", "MANAGER"],
+  insights: ["ADMIN", "HR"],
   attendance: ["ADMIN", "HR", "MANAGER", "EMPLOYEE"],
 };
 
@@ -166,36 +171,10 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
     return <PortalShell><Heading title={page.title} description={page.description} /><FinanceWorkspace invoices={invoices} expenses={expenses} /></PortalShell>;
   }
 
-  if (section === "team-board" && user) {
-    const [teams, assignedIds] = await Promise.all([
-      prisma.team.findMany({ where: { team_lead_employee_id: user.employeeId }, select: { team_id: true } }),
-      user.role === "ADMIN" ? Promise.resolve([]) : managerAssignedEmployeeIds(user.employeeId),
-    ]);
-    const teamIds = teams.map((team) => team.team_id);
-    const taskWhere = user.role === "ADMIN" ? {} : { OR: [...(teamIds.length ? [{ team_id: { in: teamIds } }] : []), ...(assignedIds.length ? [{ assignee_employee_id: { in: assignedIds } }] : [])] };
-    const tasks = await prisma.task.findMany({ where: taskWhere, orderBy: [{ due_date: "asc" }, { task_id: "asc" }], take: 200, select: { task_id: true, task_type: true, priority: true, status: true, story_points: true, due_date: true, team: { select: { team_name: true } }, sprint: { select: { sprint_name: true } }, assignee_employee_id: true } });
-    const assigneeIds = [...new Set(tasks.map((task) => task.assignee_employee_id).filter((id): id is string => Boolean(id)))];
-    const assignees = await prisma.employee.findMany({ where: { employee_id: { in: assigneeIds } }, select: { employee_id: true, full_name: true } });
-    const names = new Map(assignees.map((employee) => [employee.employee_id, employee.full_name]));
-    return <PortalShell><Heading title={page.title} description={page.description} /><p className="mt-4 text-sm text-muted">Tasks are read-only source dataset records; no work items are created here.</p>
-      {tasks.length ? <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{tasks.map((task) => <Card key={task.task_id}><CardHeader><CardTitle>{task.task_type || task.task_id}</CardTitle><p className="text-xs text-muted">{task.task_id} · {task.team.team_name}</p></CardHeader><CardContent className="space-y-2 text-sm"><p>Status: <Badge variant={task.status?.toLowerCase() === "completed" ? "success" : "warning"}>{task.status || "Unspecified"}</Badge></p><p>Assignee: {task.assignee_employee_id ? names.get(task.assignee_employee_id) ?? task.assignee_employee_id : "Unassigned"}</p><p>Sprint: {task.sprint.sprint_name}</p><p>Priority: {task.priority ?? "Not provided"} · Due: {task.due_date ?? "Not provided"}</p><p>Story points: {task.story_points ?? "Not provided"}</p></CardContent></Card>)}</div> : <div className="mt-5"><EmptyState title="No tasks found" description="There are no source tasks in your permitted team scope." /></div>}
-    </PortalShell>;
-  }
+  if (section === "team-board") return <PortalShell><Heading title={page.title} description={page.description} /><TeamTaskBoard /></PortalShell>;
+  if (section === "workload-capacity") return <PortalShell><Heading title={page.title} description={page.description} /><WorkloadCapacity /></PortalShell>;
 
-  if (section === "insights" && user) {
-    const assignedIds = user.role === "MANAGER" ? await managerAssignedEmployeeIds(user.employeeId) : null;
-    const [risks, anomalies] = await Promise.all([
-      prisma.aiAttritionRisk.findMany({ where: assignedIds ? { employee_id: { in: assignedIds } } : {}, orderBy: { risk_score_12m: "desc" }, take: 50 }),
-      prisma.aiAnomalyResult.findMany({ where: assignedIds ? { employee_id: { in: assignedIds } } : {}, orderBy: { anomaly_score: "desc" }, take: 50 }),
-    ]);
-    const employeeIds = [...new Set([...risks.map((row) => row.employee_id), ...anomalies.map((row) => row.employee_id)].filter((id): id is string => Boolean(id)))];
-    const employees = await prisma.employee.findMany({ where: { employee_id: { in: employeeIds } }, select: { employee_id: true, full_name: true } });
-    const names = new Map(employees.map((employee) => [employee.employee_id, employee.full_name]));
-    return <PortalShell><Heading title={page.title} description={page.description} /><p className="mt-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">Training dataset model output only. No live AI inference is configured; review these indicators with a human.</p>
-      <div className="mt-4 grid gap-5 xl:grid-cols-2"><Card><CardHeader><CardTitle>Attrition risk predictions</CardTitle></CardHeader><CardContent className="space-y-3">{risks.length ? risks.map((row) => <div key={row.prediction_id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{row.employee_id ? names.get(row.employee_id) ?? row.employee_id : "Department prediction"}</strong><Badge variant={row.risk_band?.toLowerCase() === "high" ? "danger" : "warning"}>{row.risk_band ?? "Unrated"}</Badge></div><p className="mt-1 text-sm text-muted">12-month score: {row.risk_score_12m == null ? "Not provided" : `${(row.risk_score_12m * 100).toFixed(1)}%`}</p><p className="mt-1 text-xs text-muted">{[row.top_reason_1, row.top_reason_2, row.top_reason_3].filter(Boolean).join(" · ") || "No reason provided"}</p></div>) : <p className="text-sm text-muted">No prediction rows in your permitted scope.</p>}</CardContent></Card>
-      <Card><CardHeader><CardTitle>Payroll anomaly results</CardTitle></CardHeader><CardContent className="space-y-3">{anomalies.length ? anomalies.map((row) => <div key={row.result_id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{row.employee_id ? names.get(row.employee_id) ?? row.employee_id : "Unassigned record"}</strong><Badge variant={row.flagged ? "danger" : "success"}>{row.flagged ? "Flagged" : "Not flagged"}</Badge></div><p className="mt-1 text-sm text-muted">{row.reason_text ?? row.reason_code ?? "No reason provided"}</p><p className="mt-1 text-xs text-muted">Period: {row.period ?? "Not provided"} · Score: {row.anomaly_score ?? "Not provided"} · Data version: {row.model_version ?? "Not provided"}</p></div>) : <p className="text-sm text-muted">No anomaly rows in your permitted scope.</p>}</CardContent></Card></div>
-    </PortalShell>;
-  }
+  if (section === "insights" && user) return <PortalShell><Heading title={page.title} description={page.description} /><AiInsightsWorkspace /></PortalShell>;
 
   if (section === "assistant" && user) {
     const faqs = await prisma.faq.findMany({ orderBy: { category: "asc" }, take: 100, select: { question: true, answer: true, category: true } });

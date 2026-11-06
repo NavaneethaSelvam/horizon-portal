@@ -51,6 +51,41 @@ export async function managerAssignedEmployeeIds(managerId: string, client: DbCl
   return [...new Set([...reports.map((row) => row.employee_id), ...tasks.map((row) => row.assignee_employee_id).filter((id): id is string => Boolean(id))])];
 }
 
+export async function taskBoardAccess(employeeId: string, role: string) {
+  if (role === "ADMIN") {
+    return {
+      taskWhere: {} satisfies Prisma.TaskWhereInput,
+      teamWhere: {} satisfies Prisma.TeamWhereInput,
+    };
+  }
+  if (role !== "MANAGER") return null;
+
+  const [ledTeams, assignedIds] = await Promise.all([
+    prisma.team.findMany({
+      where: { team_lead_employee_id: employeeId },
+      select: { team_id: true },
+    }),
+    managerAssignedEmployeeIds(employeeId),
+  ]);
+  const teamIds = ledTeams.map((team) => team.team_id);
+  const taskOr: Prisma.TaskWhereInput[] = [];
+  const teamOr: Prisma.TeamWhereInput[] = [];
+
+  if (teamIds.length) {
+    taskOr.push({ team_id: { in: teamIds } });
+    teamOr.push({ team_id: { in: teamIds } });
+  }
+  if (assignedIds.length) {
+    taskOr.push({ assignee_employee_id: { in: assignedIds } });
+    teamOr.push({ tasks: { some: { assignee_employee_id: { in: assignedIds } } } });
+  }
+
+  return {
+    taskWhere: { OR: taskOr },
+    teamWhere: { OR: teamOr },
+  } satisfies { taskWhere: Prisma.TaskWhereInput; teamWhere: Prisma.TeamWhereInput };
+}
+
 export async function notify(userId: string, title: string, message: string, idempotencyKey?: string, client: DbClient = prisma) {
   const data = {
     notification_id: crypto.randomUUID(), user_id: userId, title, message,

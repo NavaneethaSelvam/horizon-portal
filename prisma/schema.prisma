@@ -351,6 +351,7 @@ model Task {
   task_id              String @id
   team_id              String
   sprint_id            String
+  version              Int    @default(0)
   assignee_employee_id String?
   task_type            String?
   priority             String?
@@ -367,6 +368,8 @@ model Task {
 
   sprint Sprint @relation(fields: [sprint_id], references: [sprint_id])
   team   Team   @relation(fields: [team_id], references: [team_id])
+  @@index([team_id, sprint_id, task_id])
+  @@index([assignee_employee_id, task_id])
   @@map("tasks")
 }
 

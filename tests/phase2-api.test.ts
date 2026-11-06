@@ -30,6 +30,10 @@ let api: {
   middleware: typeof import("../src/middleware");
   directory: typeof import("../src/app/api/v1/employees/route");
   employeeDetail: typeof import("../src/app/api/v1/employees/[id]/route");
+  tasks: typeof import("../src/app/api/v1/tasks/route");
+  task: typeof import("../src/app/api/v1/tasks/[task_id]/route");
+  workload: typeof import("../src/app/api/v1/workload/route");
+  insights: typeof import("../src/app/api/v1/insights/route");
   login: typeof import("../src/app/api/v1/auth/login/route");
   me: typeof import("../src/app/api/v1/auth/me/route");
   logout: typeof import("../src/app/api/v1/auth/logout/route");
@@ -88,14 +92,30 @@ before(async () => {
     { payroll_item_id: "P-B", run_id: "RUN-1", employee_id: "E-B", gross_pay: 200, total_deductions: 20, net_pay: 180 },
     { payroll_item_id: "P-B-ONLY", run_id: "RUN-B", employee_id: "E-B", gross_pay: 200, total_deductions: 20, net_pay: 180 },
   ] });
-  await db.sprint.create({ data: { sprint_id: "S-1", sprint_name: "Test" } });
+  await db.sprint.createMany({ data: [
+    { sprint_id: "S-1", sprint_name: "Test", start_date: "2026-10-19", end_date: "2026-10-30", working_days: 10 },
+    { sprint_id: "S-H1", sprint_name: "History One", start_date: "2026-08-03", end_date: "2026-08-14", working_days: 10 },
+    { sprint_id: "S-H2", sprint_name: "History Two", start_date: "2026-08-17", end_date: "2026-08-28", working_days: 10 },
+    { sprint_id: "S-H3", sprint_name: "History Three", start_date: "2026-08-31", end_date: "2026-09-11", working_days: 10 },
+  ] });
   await db.team.createMany({ data: [
     { team_id: "T-1", team_name: "Team One", team_lead_employee_id: "M-1" },
     { team_id: "T-2", team_name: "Team Two", team_lead_employee_id: "M-1" },
+    { team_id: "T-OUT", team_name: "Outside Team", team_lead_employee_id: "M-2" },
   ] });
   await db.task.createMany({ data: [
-    { task_id: "TASK-1", team_id: "T-1", sprint_id: "S-1", assignee_employee_id: "E-T1" },
-    { task_id: "TASK-2", team_id: "T-2", sprint_id: "S-1", assignee_employee_id: "E-T2" },
+    { task_id: "TASK-1", team_id: "T-1", sprint_id: "S-1", assignee_employee_id: "E-T1", status: "To Do", priority: "P1", story_points: 3 },
+    { task_id: "TASK-2", team_id: "T-2", sprint_id: "S-1", assignee_employee_id: "E-T2", status: "Blocked", priority: "P2", story_points: 5 },
+    { task_id: "TASK-OUT", team_id: "T-OUT", sprint_id: "S-1", assignee_employee_id: "E-OUT", status: "Done", priority: "P3", story_points: 2 },
+  ] });
+  await db.leaveRequest.createMany({ data: [
+    { leave_request_id: "LR-WORKLOAD-1", employee_id: "E-T1", leave_type_code: "CL", start_date: "2026-10-23", end_date: "2026-10-26", days: 2, status: "Approved", applied_on: "2026-09-01" },
+    { leave_request_id: "LR-WORKLOAD-OVERLAP", employee_id: "E-T1", leave_type_code: "CL", start_date: "2026-10-26", end_date: "2026-10-26", days: 1, status: "Approved", applied_on: "2026-09-02" },
+    { leave_request_id: "LR-WORKLOAD-OUT", employee_id: "E-OUT", leave_type_code: "CL", start_date: "2026-10-23", end_date: "2026-10-26", days: 2, status: "Approved", applied_on: "2026-09-01" },
+  ] });
+  await db.holiday.createMany({ data: [
+    { holiday_date: "2026-10-20", holiday_name: "Regional holiday", holiday_type: "Regional" },
+    { holiday_date: "2026-10-21", holiday_name: "Optional holiday", holiday_type: "Optional" },
   ] });
   await db.attendanceMonthly.createMany({ data: [
     { employee_id: "E-A", period_end_date: "2026-10-31", scheduled_days: 22, present_days: 20, attendance_rate: 0.91 },
@@ -118,6 +138,10 @@ before(async () => {
     middleware: await import("../src/middleware"),
     directory: await import("../src/app/api/v1/employees/route"),
     employeeDetail: await import("../src/app/api/v1/employees/[id]/route"),
+    tasks: await import("../src/app/api/v1/tasks/route"),
+    task: await import("../src/app/api/v1/tasks/[task_id]/route"),
+    workload: await import("../src/app/api/v1/workload/route"),
+    insights: await import("../src/app/api/v1/insights/route"),
     login: await import("../src/app/api/v1/auth/login/route"),
     me: await import("../src/app/api/v1/auth/me/route"),
     logout: await import("../src/app/api/v1/auth/logout/route"),
@@ -239,13 +263,20 @@ test("Employee role is denied from every HR/Admin employee API", async () => {
 });
 
 test("admin, audit, approval and operational pages are role-gated in middleware", async () => {
-  for (const pathname of ["/admin", "/audit-history", "/approvals", "/payroll", "/finance", "/insights", "/team-board"]) {
+  for (const pathname of ["/admin", "/audit-history", "/approvals", "/payroll", "/finance", "/insights", "/team-board", "/workload-capacity"]) {
     const response = await api.middleware.middleware(
       await request("a", "EMPLOYEE", "GET", undefined, `http://localhost${pathname}`)
     );
     assert.equal(response.status, 307);
     assert.equal(response.headers.get("location"), `http://localhost/`);
   }
+  const managerInsightsDenied = await api.middleware.middleware(
+    await request("m1", "MANAGER", "GET", undefined, "http://localhost/insights"),
+  );
+  assert.equal(managerInsightsDenied.status, 307);
+  assert.equal(managerInsightsDenied.headers.get("location"), "http://localhost/");
+  assert.equal((await api.middleware.middleware(await request("hr", "HR", "GET", undefined, "http://localhost/insights"))).status, 200);
+  assert.equal((await api.middleware.middleware(await request("admin", "ADMIN", "GET", undefined, "http://localhost/insights"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("m1", "MANAGER", "GET", undefined, "http://localhost/approvals"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("hr", "HR", "GET", undefined, "http://localhost/admin"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("admin", "ADMIN", "GET", undefined, "http://localhost/audit-history"))).status, 200);
@@ -257,8 +288,334 @@ test("admin, audit, approval and operational pages are role-gated in middleware"
   assert.equal(managerFinanceDenied.status, 307);
   assert.equal(managerFinanceDenied.headers.get("location"), "http://localhost/");
   assert.equal((await api.middleware.middleware(await request("m1", "MANAGER", "GET", undefined, "http://localhost/team-board"))).status, 200);
+  assert.equal((await api.middleware.middleware(await request("m1", "MANAGER", "GET", undefined, "http://localhost/workload-capacity"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("hr", "HR", "GET", undefined, "http://localhost/payroll"))).status, 200);
   assert.equal((await api.middleware.middleware(await request("admin", "ADMIN", "GET", undefined, "http://localhost/finance"))).status, 200);
+});
+
+test("task board listing enforces role scope, combines filters and paginates", async () => {
+  const anonymous = await api.tasks.GET(await request(null, null));
+  assert.equal(anonymous.status, 401);
+  assert.equal((await api.tasks.GET(await request("hr", "HR"))).status, 403);
+  assert.equal((await api.tasks.GET(await request("a", "EMPLOYEE"))).status, 403);
+
+  const manager = await api.tasks.GET(await request("m1", "MANAGER"));
+  const managerTasks = await manager.json();
+  assert.equal(manager.status, 200);
+  assert.deepEqual(managerTasks.tasks.map((task: { task_id: string }) => task.task_id), ["TASK-1", "TASK-2"]);
+  assert.deepEqual(managerTasks.teams.map((team: { team_id: string }) => team.team_id), ["T-1", "T-2"]);
+
+  const admin = await api.tasks.GET(await request("admin", "ADMIN"));
+  assert.equal((await admin.json()).pagination.total, 3);
+
+  const combined = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?teamId=T-2&sprintId=S-1&page=1&pageSize=1",
+  ));
+  const combinedData = await combined.json();
+  assert.deepEqual(combinedData.tasks.map((task: { task_id: string }) => task.task_id), ["TASK-2"]);
+  assert.deepEqual(combinedData.pagination, { page: 1, pageSize: 1, total: 1, pageCount: 1 });
+
+  const teamFiltered = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?teamId=T-1",
+  ));
+  assert.deepEqual((await teamFiltered.json()).tasks.map((task: { task_id: string }) => task.task_id), ["TASK-1"]);
+  const sprintFiltered = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?sprintId=S-1",
+  ));
+  assert.equal((await sprintFiltered.json()).pagination.total, 3);
+
+  const secondPage = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?page=2&pageSize=1",
+  ));
+  const secondPageData = await secondPage.json();
+  assert.equal(secondPageData.pagination.pageCount, 3);
+  assert.deepEqual(secondPageData.tasks.map((task: { task_id: string }) => task.task_id), ["TASK-2"]);
+
+  const invalidPageSize = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?pageSize=101",
+  ));
+  assert.equal(invalidPageSize.status, 400);
+});
+
+test("workload API reuses Admin/Manager task scope for filters, leave and capacity", async () => {
+  await db.task.createMany({ data: [
+    { task_id: "HISTORY-1", team_id: "T-1", sprint_id: "S-H1", assignee_employee_id: "E-T1", status: "Done", story_points: 10 },
+    { task_id: "HISTORY-2", team_id: "T-1", sprint_id: "S-H2", assignee_employee_id: "E-T1", status: "Done", story_points: 20 },
+    { task_id: "HISTORY-3", team_id: "T-1", sprint_id: "S-H3", assignee_employee_id: "E-T1", status: "Done", story_points: 30 },
+  ] });
+  assert.equal((await api.workload.GET(await request(null, null))).status, 401);
+  assert.equal((await api.workload.GET(await request("hr", "HR"))).status, 403);
+  assert.equal((await api.workload.GET(await request("a", "EMPLOYEE"))).status, 403);
+
+  const managerResponse = await api.workload.GET(await request(
+    "m1",
+    "MANAGER",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/workload?sprintId=S-1",
+  ));
+  assert.equal(managerResponse.status, 200);
+  const managerData = await managerResponse.json();
+  assert.deepEqual(managerData.result.employees.map((employee: { employee_id: string }) => employee.employee_id), ["E-T1", "E-T2"]);
+  assert.equal(managerData.result.employees.some((employee: { employee_id: string }) => employee.employee_id === "E-OUT"), false);
+  const taskEmployee = managerData.result.employees.find((employee: { employee_id: string }) => employee.employee_id === "E-T1");
+  assert.equal(taskEmployee.approved_leave_working_days, 2);
+  assert.equal(taskEmployee.available_working_days, 8);
+  assert.equal(taskEmployee.historical_velocity, 2);
+  assert.equal(taskEmployee.capacity, 16);
+  assert.equal(taskEmployee.overload, 0);
+  assert.equal(taskEmployee.leave_periods.some((leave: { leave_request_id: string }) => leave.leave_request_id === "LR-WORKLOAD-OUT"), false);
+  assert.deepEqual(managerData.result.holiday_policy.uncertain.map((holiday: { holiday_type: string }) => holiday.holiday_type), ["Regional", "Optional"]);
+
+  const combined = await api.workload.GET(await request(
+    "m1",
+    "MANAGER",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/workload?sprintId=S-1&teamId=T-1",
+  ));
+  assert.equal(combined.status, 200);
+  assert.deepEqual((await combined.json()).result.employees.map((employee: { employee_id: string }) => employee.employee_id), ["E-T1"]);
+
+  const managerOutsideTeam = await api.workload.GET(await request(
+    "m1",
+    "MANAGER",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/workload?sprintId=S-1&teamId=T-OUT",
+  ));
+  assert.equal(managerOutsideTeam.status, 404);
+
+  const adminResponse = await api.workload.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/workload?sprintId=S-1",
+  ));
+  assert.equal(adminResponse.status, 200);
+  const adminResult = (await adminResponse.json()).result;
+  assert.deepEqual(adminResult.summary.planned, { knownPoints: 10, unknownTasks: 0 });
+  assert.deepEqual(adminResult.summary.completed, { knownPoints: 2, unknownTasks: 0 });
+  assert.deepEqual(adminResult.summary.open, { knownPoints: 8, unknownTasks: 0 });
+  assert.equal(adminResult.employees.some((employee: { employee_id: string }) => employee.employee_id === "E-OUT"), true);
+});
+
+test("AI insights API is HR/Admin-only and only returns privacy-safe grouped data", async () => {
+  const employees = ["E-A", "E-B", "E-OUT", "E-T1", "E-T2"];
+  await db.aiAttritionRisk.createMany({
+    data: [
+      ...employees.map((employee_id, index) => ({
+        prediction_id: `AR-PRIVACY-${index}`,
+        employee_id,
+        department_id: "D-TEST",
+        as_of_date: "2026-10-01",
+        risk_score_12m: 0.9 - index / 100,
+        risk_band: "High",
+        top_reason_1: "Low engagement score with PRIVATE-RAW-ATTRITION-MEASURE",
+        top_reason_2: "Pay is PRIVATE-SALARY-VALUE compared with midpoint",
+        top_reason_3: null,
+        model_version: "private-model-version",
+        model_note: "private model note",
+      })),
+      {
+        prediction_id: "AR-PRIVACY-SMALL",
+        employee_id: "E-A",
+        department_id: "D-TEST",
+        as_of_date: "2026-10-01",
+        risk_score_12m: 0.01,
+        risk_band: "Low",
+        top_reason_1: "PRIVATE-SMALL-GROUP-REASON",
+        top_reason_2: null,
+        top_reason_3: null,
+        model_version: "private-model-version",
+        model_note: "private model note",
+      },
+    ],
+  });
+  await db.aiAnomalyResult.createMany({
+    data: [
+      ...employees.map((employee_id, index) => ({
+        result_id: `AN-PRIVACY-${index}`,
+        source_dataset: "payroll_monthly_features",
+        record_id: `PRIVATE-SOURCE-RECORD-${index}`,
+        employee_id,
+        period: "2026-09-01",
+        anomaly_score: 0.99,
+        flagged: true,
+        reason_code: "GROSS_ABOVE_NORM",
+        reason_text: "PRIVATE-RAW-ANOMALY-REASON",
+        money_at_risk: index === 0 ? null : 100 + index,
+        model_version: "private-anomaly-version",
+        scored_at: "2026-10-01",
+      })),
+      ...Array.from({ length: 5 }, (_, index) => ({
+        result_id: `AN-UNMAPPED-${index}`,
+        source_dataset: "attendance_monthly_features",
+        record_id: `PRIVATE-UNMAPPED-SOURCE-${index}`,
+        employee_id: `PRIVATE-UNMATCHED-EMPLOYEE-${index}`,
+        period: "2026-08-01",
+        anomaly_score: 1,
+        flagged: true,
+        reason_code: "NO_ATTENDANCE",
+        reason_text: "PRIVATE-UNMAPPED-RAW-REASON",
+        money_at_risk: null,
+        model_version: "private-anomaly-version",
+        scored_at: "2026-10-01",
+      })),
+    ],
+  });
+
+  const endpoint = "http://localhost/api/v1/insights?departmentId=D-TEST";
+  assert.equal((await api.insights.GET(await request(null, null, "GET", undefined, endpoint))).status, 401);
+  assert.equal((await api.insights.GET(await request("m1", "MANAGER", "GET", undefined, endpoint))).status, 403);
+  assert.equal((await api.insights.GET(await request("a", "EMPLOYEE", "GET", undefined, endpoint))).status, 403);
+
+  for (const [username, role] of [["hr", "HR"], ["admin", "ADMIN"]]) {
+    const response = await api.insights.GET(await request(username, role, "GET", undefined, endpoint));
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.result.departmentName, "Test");
+    assert.deepEqual(body.result.attrition.bands, [
+      { band: "High", count: 5, suppressed: false },
+      { band: "Medium", count: null, suppressed: true },
+      { band: "Low", count: null, suppressed: true },
+    ]);
+    assert.equal(body.result.attrition.topReasons.some((reason: { category: string }) => reason.category === "Engagement"), true);
+    assert.equal(body.result.anomalies.length, 1);
+    assert.equal(body.result.anomalies[0].source, "Payroll");
+    assert.equal(body.result.anomalies[0].recordCount, 5);
+    assert.equal(body.result.anomalies[0].moneyAtRiskTotal, 410);
+    assert.equal(body.result.anomalies[0].hasMissingMoneyAtRisk, true);
+    assert.equal(body.result.anomalies[0].status, "Model flagged — requires human review");
+    assert.equal(body.result.disclosure, "AI-generated, for human review");
+
+    const serialized = JSON.stringify(body);
+    for (const privateValue of [
+      ...employees,
+      "Employee A",
+      "PRIVATE-RAW-ATTRITION-MEASURE",
+      "PRIVATE-SALARY-VALUE",
+      "PRIVATE-SMALL-GROUP-REASON",
+      "PRIVATE-SOURCE-RECORD",
+      "PRIVATE-RAW-ANOMALY-REASON",
+      "PRIVATE-UNMATCHED-EMPLOYEE",
+      "PRIVATE-UNMAPPED-SOURCE",
+      "PRIVATE-UNMAPPED-RAW-REASON",
+      "private-model-version",
+      "anomaly_score",
+      "employee_id",
+      "record_id",
+    ]) {
+      assert.equal(serialized.includes(privateValue), false, `Response leaked ${privateValue}`);
+    }
+
+    const unmapped = await api.insights.GET(await request(
+      username,
+      role,
+      "GET",
+      undefined,
+      "http://localhost/api/v1/insights?departmentId=UNMAPPED",
+    ));
+    assert.equal(unmapped.status, 200);
+    const unmappedBody = await unmapped.json();
+    assert.equal(unmappedBody.result.attrition, null);
+    assert.equal(unmappedBody.result.anomalies.length, 1);
+    assert.equal(unmappedBody.result.anomalies[0].source, "Attendance");
+    assert.equal(JSON.stringify(unmappedBody).includes("PRIVATE-UNMATCHED-EMPLOYEE"), false);
+  }
+});
+
+test("task status PATCH persists changes and uses versioned conflict reconciliation", async () => {
+  const unauthenticated = await api.task.PATCH(
+    await request(null, null, "PATCH", { status: "Done", expectedVersion: 0 }),
+    { params: Promise.resolve({ task_id: "TASK-1" }) },
+  );
+  assert.equal(unauthenticated.status, 401);
+
+  const forbiddenPatch = await api.task.PATCH(
+    await request("hr", "HR", "PATCH", { status: "Done", expectedVersion: 0 }),
+    { params: Promise.resolve({ task_id: "TASK-1" }) },
+  );
+  assert.equal(forbiddenPatch.status, 403);
+
+  const outOfScope = await api.task.PATCH(
+    await request("m1", "MANAGER", "PATCH", { status: "In Progress", expectedVersion: 0 }),
+    { params: Promise.resolve({ task_id: "TASK-OUT" }) },
+  );
+  assert.equal(outOfScope.status, 404);
+
+  const invalidVersion = await api.task.PATCH(
+    await request("admin", "ADMIN", "PATCH", { status: "Done" }),
+    { params: Promise.resolve({ task_id: "TASK-1" }) },
+  );
+  assert.equal(invalidVersion.status, 400);
+
+  const persisted = await api.task.PATCH(
+    await request("admin", "ADMIN", "PATCH", { status: "In Progress", expectedVersion: 0 }),
+    { params: Promise.resolve({ task_id: "TASK-1" }) },
+  );
+  assert.equal(persisted.status, 200);
+  const updated = (await persisted.json()).task;
+  assert.equal(updated.status, "In Progress");
+  assert.equal(updated.version, 1);
+  assert.equal((await db.task.findUniqueOrThrow({ where: { task_id: "TASK-1" } })).status, "In Progress");
+
+  const simultaneous = await Promise.all([
+    api.task.PATCH(
+      await request("admin", "ADMIN", "PATCH", { status: "Done", expectedVersion: 1 }),
+      { params: Promise.resolve({ task_id: "TASK-1" }) },
+    ),
+    api.task.PATCH(
+      await request("admin", "ADMIN", "PATCH", { status: "Blocked", expectedVersion: 1 }),
+      { params: Promise.resolve({ task_id: "TASK-1" }) },
+    ),
+  ]);
+  assert.deepEqual(simultaneous.map((response) => response.status).sort(), [200, 409]);
+  const conflict = simultaneous.find((response) => response.status === 409);
+  assert.ok(conflict);
+  const conflictData = await conflict.json();
+  assert.equal(conflictData.latest.version, 2);
+
+  const stale = await api.task.PATCH(
+    await request("admin", "ADMIN", "PATCH", { status: "To Do", expectedVersion: 1 }),
+    { params: Promise.resolve({ task_id: "TASK-1" }) },
+  );
+  assert.equal(stale.status, 409);
+  const latest = (await stale.json()).latest;
+  assert.equal(latest.version, 2);
+  assert.equal(latest.status, (await db.task.findUniqueOrThrow({ where: { task_id: "TASK-1" } })).status);
+
+  const refreshed = await api.tasks.GET(await request(
+    "admin",
+    "ADMIN",
+    "GET",
+    undefined,
+    "http://localhost/api/v1/tasks?teamId=T-1&sprintId=S-1",
+  ));
+  const refreshedTask = (await refreshed.json()).tasks.find((task: { task_id: string }) => task.task_id === "TASK-1");
+  assert.equal(refreshedTask.version, 2);
+  assert.equal(refreshedTask.status, latest.status);
 });
 
 test("managers see direct reports and all assigned teams, and cannot decide outside scope", async () => {

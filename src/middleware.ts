@@ -32,7 +32,8 @@ export async function middleware(request: NextRequest) {
       { prefix: "/payroll", roles: ["ADMIN", "HR"] },
       { prefix: "/finance", roles: ["ADMIN"] },
       { prefix: "/team-board", roles: ["ADMIN", "MANAGER"] },
-      { prefix: "/insights", roles: ["ADMIN", "HR", "MANAGER"] },
+      { prefix: "/workload-capacity", roles: ["ADMIN", "MANAGER"] },
+      { prefix: "/insights", roles: ["ADMIN", "HR"] },
     ];
     const denied = accessRules.find(({ prefix, roles }) =>
       (pathname === prefix || pathname.startsWith(`${prefix}/`)) && !roles.includes(role)
@@ -73,6 +74,7 @@ export const config = {
     "/audit-history/:path*",
     "/finance/:path*",
     "/team-board/:path*",
+    "/workload-capacity/:path*",
     "/insights/:path*",
   ],
 };
