@@ -9,8 +9,8 @@ Status meanings: **PASS** means code and the stated check support the requiremen
 | Task | Requirement | Status | Evidence and remaining work |
 |---|---|---|---|
 | 1 | App starts and builds | PASS | `npm.cmd run build` passes. |
-| 1 | Button, Input, Card and Badge; light/dark design showcase | PASS | Components and `/design` exist; screenshots are in `Task1_Screenshots/`. |
-| 1 | Colors come from tokens; no hard-coded hex outside token source | PASS | Runtime CSS variables are generated from `design/design_tokens.json`; `rg -n --glob '!design_tokens.json' '#[0-9A-Fa-f]{3,8}\\b' src` returned no matches. |
+| 1 | Button, Input, Card and Badge; light/dark design showcase | PASS | Components and `/design` exist; screenshots are in `phase-1/screenshots/Task1_Screenshots/`. |
+| 1 | Colors come from tokens; no hard-coded hex outside token source | PASS | Runtime CSS variables are generated from `phase-1/design/design_tokens.json`; `rg -n --glob '!design_tokens.json' '#[0-9A-Fa-f]{3,8}\\b' src` returned no matches. |
 | 1 | README setup instructions | PASS | README includes environment, migrations, test, lint, type check and run instructions. |
 | 1 | Contrast review and browser visual sweep | PARTIAL | Existing light/dark screenshots are present, but no current contrast measurement or responsive browser sweep was completed. |
 | 2 | Prisma schema covers source entities and relationships | PASS | Schema and migration history validate; source data counts are 441 employees, 2,469 payslips and 2,183 leave requests. |
@@ -24,11 +24,11 @@ Status meanings: **PASS** means code and the stated check support the requiremen
 | 4 | Loading, empty, error and not-found states | PASS | Added reusable `Skeleton`, `EmptyState`, `ErrorState`, root loading UI and retained custom error/404 screens. |
 | 4 | Phone layout and keyboard/focus behavior | PARTIAL | Responsive styles and a Task 4 dashboard screenshot plus Task 5 mobile screenshot exist; current keyboard/focus browser sweep is unverified. |
 | 5 | Employee profile, manager and direct-report information | PASS | Profile now loads the signed-in employee's database fields. Detail API test checks manager and second-level reporting chain. |
-| 5 | Search, department filter, pagination, phone layout | PASS | Directory UI and paginated API are implemented; existing screenshots are in `Task5_Screenshots/`. Search latency under one second remains unmeasured. |
+| 5 | Search, department filter, pagination, phone layout | PASS | Directory UI and paginated API are implemented; existing screenshots are in `phase-1/screenshots/Task5_Screenshots/`. Search latency under one second remains unmeasured. |
 | 5 | Directory/profile API do not expose salary | PASS | New integration test checks both responses for salary/pay/wage fields. |
 | 5 | Same-name disambiguation and reporting chain verified for 3 source employees | PARTIAL | Directory shows employee IDs and work emails; synthetic test verifies a two-level chain, but no three-record source-data comparison was run. |
 
-The Phase 1 evidence folders contain 12 images: Task 1 (2), Task 2 (1), Task 3 (4), Task 4 (1) and Task 5 (4). These are existing artifacts, not screenshots captured during this turn.
+The Phase 1 evidence folders under `phase-1/screenshots/` contain 12 images: Task 1 (2), Task 2 (1), Task 3 (4), Task 4 (1) and Task 5 (4). These are existing artifacts, not screenshots captured during this turn.
 
 ## Task 6 — Leave and attendance
 
@@ -186,7 +186,7 @@ Copy `.env.example` to `.env`, set `DATABASE_URL` and a random `SESSION_SECRET` 
 
 ## Modified files
 
-- Configuration/design/docs: `.env.example`, `.gitignore`, `eslint.config.mjs`, `next.config.ts`, `package.json`, `README.md`, `design/design_tokens.json`, `docs/phase2-verification.md`.
+- Configuration/design/docs: `.env.example`, `.gitignore`, `eslint.config.mjs`, `next.config.ts`, `package.json`, `README.md`, `phase-1/design/design_tokens.json`, `phase-2/docs/phase2-verification.md`.
 - Database: `prisma/schema.prisma`, `prisma/migrations/20261027090000_phase2_core/migration.sql`, `prisma/migrations/20261027100000_leave_reservation_tracking/migration.sql`, `prisma/migrations/20261027110000_employee_email_unique/migration.sql`.
 - Application/auth: `src/app/[section]/page.tsx`, `src/app/employees/[id]/page.tsx`, `src/app/globals.css`, `src/app/layout.tsx`, `src/app/loading.tsx`, `src/app/error.tsx`, `src/components/design-token-styles.tsx`, `src/components/ui/states.tsx`, `src/components/employees/employee-directory.tsx`, `src/components/layout/portal-shell.tsx`, `src/middleware.ts`, `src/app/api/v1/auth/login/route.ts`, `src/app/api/v1/auth/me/route.ts`, `src/app/api/v1/employees/route.ts`, `src/app/api/v1/employees/[id]/route.ts`.
 - Additional read-only workspaces: `src/components/operations/workspace-tables.tsx`, `src/components/assistant/assistant-chat.tsx`.

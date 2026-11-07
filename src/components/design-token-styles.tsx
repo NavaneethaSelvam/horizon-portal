@@ -1,4 +1,4 @@
-import tokens from "../../design/design_tokens.json";
+import tokens from "../../phase-1/design/design_tokens.json";
 
 const cssVariableByToken: Record<string, string> = {
   background: "--background",
