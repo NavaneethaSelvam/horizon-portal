@@ -14,14 +14,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma Client before building Next.js
-RUN npx prisma generate
-
 RUN npm run build
 
 
 FROM node:22-alpine AS runner
-ENV DATABASE_URL="file:/app/prisma/dev.db"
 WORKDIR /app
 
 ENV NODE_ENV=production

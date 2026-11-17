@@ -4,11 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts tests/task-board-rules.test.ts tests/workload-rules.test.ts tests/ai-insights.test.ts",
-    "seed": "tsx prisma/seed.ts"
+    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts tests/task-board-rules.test.ts tests/workload-rules.test.ts tests/ai-insights.test.ts tests/assistant.test.ts tests/prisma-schemas.test.ts",
+    "generate:local": "prisma generate --schema prisma/schema.prisma",
+    "generate:production": "prisma generate --schema prisma/postgresql/schema.prisma",
+    "seed": "tsx prisma/seed.ts",
+    "seed:production": "prisma generate --schema prisma/postgresql/schema.prisma && tsx prisma/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

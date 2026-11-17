@@ -1,4 +1,4 @@
-# Horizon Portal — GrowMar Aura Workforce
+﻿# Horizon Portal — GrowMar Aura Workforce
 
 A responsive, role-based workforce management portal developed for the GrowMar Aura Workforce Full Stack Developer training project.
 
@@ -52,9 +52,38 @@ Application locations: the shared `src/app/[section]/page.tsx` route, `src/app/a
 Evidence, report, screenshots and task details: [phase-3/README.md](phase-3/README.md).
 Application locations: `src/app/[section]/page.tsx`, `src/app/api/v1/`, `src/components/operations/` and `src/lib/`. Main routes are `/payroll`, `/finance`, `/team-board`, `/workload-capacity` and `/insights`.
 
-## Phase 4 — Not yet released
+## Phase 4 — Release (deployment prepared; account setup pending)
 
-The company has not released Phase 4 requirements or deliverables. No Phase 4 folder or implementation is included.
+- **Task 16:** HR assistant available throughout the signed-in portal, matching the seeded HR FAQ, using the current user's own leave and payslip records, and refusing other employees' pay questions.
+- The assistant uses the seeded `hr_faq` and `chatbot_responses` datasets. Personal lookups are resolved server-side from the authenticated session; employee names or IDs supplied in chat are never used to select a record.
+- Focused assistant tests cover ten FAQ questions, personal-intent routing, refusal detection and safe fallback behavior.
+
+### Task 17 — Hosting choice and deployment setup
+
+Pricing and limits checked on 2026-11-17 against the providers' official pages:
+
+| Option | Free limits and sleep behavior | Database size | Approx. monthly price |
+| --- | --- | --- | --- |
+| **Vercel Hobby + Neon Free (selected for this training demo)** | Vercel includes 100 GB monthly data transfer and has no always-on web service to sleep. Neon Free gets 100 compute-hours and 5 GB network transfer per project; idle compute scales to zero after 5 minutes and wakes on a query. | Neon: 1 GB per project | $0 while within quotas. Vercel Hobby is intended for personal, non-commercial use. |
+| Render Free web + Free Postgres | Web service: 512 MB RAM, sleeps after 15 minutes idle, and shares 750 free instance-hours per workspace/month. | 1 GB; free database expires after 30 days | $0; unsuitable for a durable demo database. |
+| Render Starter web + paid Postgres | Web service stays available; smallest listed web and database instances are 512 MB and 256 MB RAM. | Storage is billed separately (currently $0.30/GB-month). | About $13/month before storage: $7 web + $6 database. |
+
+Sources: [Vercel pricing](https://vercel.com/pricing), [Neon pricing](https://neon.com/pricing), [Render free services](https://render.com/docs/free), and [Render pricing](https://render.com/pricing).
+
+**Decision:** use Vercel Hobby + Neon Free for the public training/demo release. They avoid Render Free's 30-day database expiry and keep the Next.js UI and API on one origin. This is not a production SLA: Neon can suspend compute after its monthly quota is exhausted, and Vercel Hobby is not for commercial workloads. Upgrade before using this for a real company service.
+
+The production PostgreSQL schema and initial baseline migration live under `prisma/postgresql/`; the root SQLite schema/migrations remain the local development and test setup. The build generates the PostgreSQL client and runs `prisma migrate deploy` on Vercel. Seed the new hosted database exactly once with `npm run seed:production`; the seed clears/reloads data, so never rerun it on a database with records to preserve.
+
+Before calling the deployment live:
+
+1. Connect this GitHub repository to Vercel; its Git integration should deploy pushes to `main`.
+2. Create a Neon project and configure `DATABASE_URL` (pooled connection), `DIRECT_URL` (direct connection for migrations), and a random `SESSION_SECRET` of at least 32 characters in Vercel. Use a separate Neon branch for Preview deployments. `vercel.json` skips Prisma's automatic SQLite client generation during install; the build generates the PostgreSQL client explicitly. Never commit or paste secrets into chat.
+3. Confirm role permissions and same-origin HTTPS cookies on the live site. First check: (a) the secure session cookie is set and sent to the same host, (b) API calls target the deployed origin and any CORS credentials allow only the exact origin (never `*`), and (c) database URLs stay server-side, use TLS, and Preview traffic does not touch production data.
+4. Sign in as Admin, HR, Manager and Employee; complete one permitted workflow as each role and confirm restricted menus/routes and clear error states.
+
+The hosted database, GitHub-to-Vercel connection, live role smoke tests and screenshots are still pending account authorization; no live URL is claimed yet.
+
+Tasks 18–20 will be documented as they are completed.
 
 ## Install and run
 
@@ -83,11 +112,13 @@ Never commit `.env` or production credentials.
 
 ### Prepare the Prisma client and database
 
-Generate the client:
+The root SQLite schema is used for local development and tests. Generate it with:
 
 ```powershell
-npx.cmd prisma generate
+npm.cmd run generate:local
 ```
+
+`npm.cmd run dev`, `npm.cmd test` and `npm.cmd run seed` use the currently generated client; run `npm.cmd run generate:local` after a production build before returning to SQLite. Production builds generate from `prisma/postgresql/schema.prisma`; `npm.cmd run seed:production` uses that client and must only be run against the newly created hosted database. Prisma writes both generated clients to the same package location, so stop the local dev server before switching schemas on Windows.
 
 Before applying migrations to any existing database, inspect its `_prisma_migrations` history and make a backup. The historical `20261020155234_map_table_names` migration drops original PascalCase tables without copying their rows. Do not apply it to a populated Phase 1 database while it is still pending without first preparing a data-preserving migration plan.
 

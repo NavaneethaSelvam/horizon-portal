@@ -8,13 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { AssistantChat } from "@/components/assistant/assistant-chat";
 
 export default function DesignPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl px-5 py-6 sm:px-8">
+    <>
+      <main className="mx-auto min-h-screen w-full max-w-6xl px-5 py-6 sm:px-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"><Layers3 aria-hidden="true" className="size-5" /></span>
@@ -86,6 +88,8 @@ export default function DesignPage() {
       </div>
 
       <footer className="mt-10 border-t border-border py-6 text-xs text-muted">Horizon Portal · Design showcase · Task 1 only</footer>
-    </main>
+      </main>
+      <AssistantChat />
+    </>
   );
 }

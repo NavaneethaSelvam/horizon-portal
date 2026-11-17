@@ -28,6 +28,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { AssistantChat } from "@/components/assistant/assistant-chat";
 
 type UserRole = "ADMIN" | "HR" | "MANAGER" | "EMPLOYEE";
 
@@ -654,6 +655,7 @@ if (!cancelled) {
           Horizon Portal · GrowMar · Aura Workforce
         </footer>
       </div>
+      <AssistantChat />
     </div>
   );
 }

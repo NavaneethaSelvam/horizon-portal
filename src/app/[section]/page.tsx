@@ -9,7 +9,6 @@ import { PayrollWorkspace, FinanceWorkspace } from "@/components/operations/work
 import { TeamTaskBoard } from "@/components/operations/team-task-board";
 import { WorkloadCapacity } from "@/components/operations/workload-capacity";
 import { AiInsightsWorkspace } from "@/components/operations/ai-insights-workspace";
-import { AssistantChat } from "@/components/assistant/assistant-chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/states";
@@ -177,8 +176,7 @@ export default async function SectionPage({ params }: { params: Promise<{ sectio
   if (section === "insights" && user) return <PortalShell><Heading title={page.title} description={page.description} /><AiInsightsWorkspace /></PortalShell>;
 
   if (section === "assistant" && user) {
-    const faqs = await prisma.faq.findMany({ orderBy: { category: "asc" }, take: 100, select: { question: true, answer: true, category: true } });
-    return <PortalShell><Heading title={page.title} description={page.description} /><AssistantChat faqs={faqs} /></PortalShell>;
+    return <PortalShell><Heading title={page.title} description={page.description} /><p className="mt-6 max-w-2xl text-sm text-muted">Open the HR Assistant bubble on any page to ask a policy question or get private details from your own account. Questions about another employee&apos;s pay are not supported.</p></PortalShell>;
   }
 
   return notFound();

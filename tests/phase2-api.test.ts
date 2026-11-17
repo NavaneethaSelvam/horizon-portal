@@ -37,6 +37,7 @@ let api: {
   login: typeof import("../src/app/api/v1/auth/login/route");
   me: typeof import("../src/app/api/v1/auth/me/route");
   logout: typeof import("../src/app/api/v1/auth/logout/route");
+  assistant: typeof import("../src/app/api/v1/assistant/route");
 };
 
 before(async () => {
@@ -122,6 +123,16 @@ before(async () => {
     { employee_id: "E-OUT", period_end_date: "2026-10-31", scheduled_days: 22, present_days: 21, attendance_rate: 0.95 },
     { employee_id: "E-A", period_end_date: "2026-11-30", scheduled_days: 20, present_days: 19, attendance_rate: 0.95 },
   ] });
+  await db.chatbotResponse.createMany({ data: [
+    { intent: "greet", response_template: "Hello!", requires_login: false, allowed_roles: "ALL" },
+    { intent: "leave_balance", response_template: "You have {cl} CL, {sl} SL and {el} EL days left.", requires_login: true, allowed_roles: "EMPLOYEE,HR,ADMIN", on_failure: "Try again." },
+    { intent: "payslip_status", response_template: "Your payslip for {month} is {status}.", requires_login: true, allowed_roles: "EMPLOYEE,HR,ADMIN", on_failure: "Try again." },
+    { intent: "apply_leave_howto", response_template: "Open the Leave screen, choose the leave type and dates, then submit. Your manager gets an approval request.", requires_login: false, allowed_roles: "ALL" },
+    { intent: "salary_of_other", response_template: "Sorry, I cannot share another person's pay.", requires_login: true, allowed_roles: "ALL" },
+  ] });
+  await db.faq.createMany({ data: [
+    { faq_id: "FAQ-SALARY-DATE", question: "When is salary paid?", answer: "On the first working day of the following month.", category: "Pay" },
+  ] });
   api = {
     leave: await import("../src/app/api/v1/leave/route"),
     attendance: await import("../src/app/api/v1/attendance/route"),
@@ -145,6 +156,7 @@ before(async () => {
     login: await import("../src/app/api/v1/auth/login/route"),
     me: await import("../src/app/api/v1/auth/me/route"),
     logout: await import("../src/app/api/v1/auth/logout/route"),
+    assistant: await import("../src/app/api/v1/assistant/route"),
   };
 });
 
@@ -167,9 +179,41 @@ test("protected endpoints return 401 without a verified session", async () => {
   for (const handler of [api.leave.GET, api.attendance.GET, api.notifications.GET, api.payslips.GET, api.admin.GET, api.approvals.GET, api.directory.GET]) {
     assert.equal((await handler(await request(null, null))).status, 401);
   }
+  assert.equal((await api.assistant.POST(await request(null, null, "POST", { question: "How do I apply for leave?" }))).status, 401);
   assert.equal((await api.leave.POST(await request(null, null, "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-10", reason: "Unauthenticated" }))).status, 401);
   assert.equal((await api.leaveItem.PATCH(await request(null, null, "PATCH"), { params: Promise.resolve({ id: "LR-A" }) })).status, 401);
   assert.equal((await api.employeeDetail.GET(await request(null, null), { params: Promise.resolve({ id: "E-A" }) })).status, 401);
+});
+
+test("assistant personal responses are scoped to the signed-in employee and other-pay requests are refused", async () => {
+  const leave = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "How much leave do I have?" }));
+  assert.equal(leave.status, 200);
+  assert.equal((await leave.json()).answer, "You have 5 CL, 0 SL and 0 EL days left.");
+
+  const payslip = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "Show my last payslip" }));
+  const payslipAnswer = (await payslip.json()).answer as string;
+  assert.equal(payslip.status, 200);
+  assert.match(payslipAnswer, /₹90\.00/);
+  assert.equal(payslipAnswer.includes("180"), false);
+
+  const refused = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "What is my coworker's salary?" }));
+  assert.equal(refused.status, 200);
+  assert.match((await refused.json()).answer, /cannot share another person's pay/i);
+
+  const namedRequest = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "Show E-B's payslip" }));
+  assert.match((await namedRequest.json()).answer, /cannot share another person's pay/i);
+
+  const relatedPerson = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "What is my sister's salary?" }));
+  assert.match((await relatedPerson.json()).answer, /cannot share another person's pay/i);
+
+  const policyFaq = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "When is salary paid?" }));
+  assert.equal((await policyFaq.json()).answer, "On the first working day of the following month.");
+
+  const sharedName = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "What if two employees share a name?" }));
+  assert.match((await sharedName.json()).answer, /won't select an employee by name/i);
+
+  const leaveInstructions = await api.assistant.POST(await request("a", "EMPLOYEE", "POST", { question: "How do I apply for leave?" }));
+  assert.match((await leaveInstructions.json()).answer, /Open the Leave screen/i);
 });
 
 test("all four roles can authenticate; invalid credentials are rejected and logout clears the cookie", async () => {

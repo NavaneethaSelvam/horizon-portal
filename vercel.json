@@ -1,0 +1,3 @@
+{
+  "installCommand": "PRISMA_SKIP_POSTINSTALL_GENERATE=1 npm ci --include=dev"
+}
