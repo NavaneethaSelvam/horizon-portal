@@ -175,3 +175,6 @@ horizon-portal/
 ## Data and responsible use
 
 Supplied workforce datasets and demo credentials are for development and demonstration, not production. Review authentication, authorization, entitlement data, approval policies and database migration history before using real employee information. AI outputs are estimates for human review, are not confirmed findings and must not be the sole basis for employment decisions. See [phase-3/docs/ai-insights-privacy.md](phase-3/docs/ai-insights-privacy.md).
+
+
+Phase 4 Task 17 - Production deployment verified on Vercel.
