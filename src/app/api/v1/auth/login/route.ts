@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
     try {
       limit = await checkLoginRateLimit(clientKey);
     } catch {
-      securityEvent("login_rate_limit_unavailable", { reason: "upstash_request_failed" });
       return NextResponse.json(
         { success: false, message: "Login protection is temporarily unavailable." },
         { status: 503 },

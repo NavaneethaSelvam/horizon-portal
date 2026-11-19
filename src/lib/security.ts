@@ -1,5 +1,11 @@
 type RateLimitResult = { allowed: boolean; configured: boolean; retryAfterSeconds?: number };
 
+class RateLimitUnavailableError extends Error {
+  constructor() {
+    super("RATE_LIMIT_SERVICE_UNAVAILABLE");
+  }
+}
+
 const localAttempts = new Map<string, { count: number; resetAt: number }>();
 const WINDOW_SECONDS = 15 * 60;
 const MAX_ATTEMPTS = 10;
@@ -34,21 +40,39 @@ export async function checkLoginRateLimit(key: string): Promise<RateLimitResult>
   }
 
   try {
-    const response = await fetch(`${url}/eval`, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify([RATE_LIMIT_SCRIPT, [`horizon:login:${key}`], [String(WINDOW_SECONDS)]]),
+      body: JSON.stringify([
+        "EVAL",
+        RATE_LIMIT_SCRIPT,
+        "1",
+        `horizon:login:${key}`,
+        String(WINDOW_SECONDS),
+      ]),
       cache: "no-store",
       signal: AbortSignal.timeout(5000),
     });
-    if (!response.ok) throw new Error("RATE_LIMIT_SERVICE_UNAVAILABLE");
+    if (!response.ok) {
+      securityEvent("login_rate_limit_unavailable", { reason: "upstash_http_error", status: response.status });
+      throw new RateLimitUnavailableError();
+    }
 
-    const payload: unknown = await response.json();
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      securityEvent("login_rate_limit_unavailable", { reason: "upstash_invalid_response" });
+      throw new RateLimitUnavailableError();
+    }
     const result =
       typeof payload === "object" && payload !== null && "result" in payload
         ? (payload as { result?: unknown }).result
         : undefined;
-    if (!Array.isArray(result) || result.length !== 2) throw new Error("RATE_LIMIT_SERVICE_UNAVAILABLE");
+    if (!Array.isArray(result) || result.length !== 2) {
+      securityEvent("login_rate_limit_unavailable", { reason: "upstash_invalid_response" });
+      throw new RateLimitUnavailableError();
+    }
 
     const count = result[0];
     const ttl = result[1];
@@ -56,11 +80,18 @@ export async function checkLoginRateLimit(key: string): Promise<RateLimitResult>
       typeof count !== "number" || !Number.isSafeInteger(count) || count < 1 ||
       typeof ttl !== "number" || !Number.isSafeInteger(ttl) || ttl < 1 || ttl > WINDOW_SECONDS
     ) {
-      throw new Error("RATE_LIMIT_SERVICE_UNAVAILABLE");
+      securityEvent("login_rate_limit_unavailable", { reason: "upstash_invalid_response" });
+      throw new RateLimitUnavailableError();
     }
     return { allowed: count <= MAX_ATTEMPTS, configured: true, retryAfterSeconds: ttl };
-  } catch {
-    throw new Error("RATE_LIMIT_SERVICE_UNAVAILABLE");
+  } catch (error) {
+    if (error instanceof RateLimitUnavailableError) throw error;
+    securityEvent("login_rate_limit_unavailable", {
+      reason: error instanceof DOMException && error.name === "TimeoutError"
+        ? "upstash_timeout"
+        : "upstash_network_error",
+    });
+    throw new RateLimitUnavailableError();
   }
 }
 

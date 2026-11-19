@@ -78,10 +78,74 @@ test("Upstash network and malformed responses fail closed", async () => {
   process.env.UPSTASH_REDIS_REST_URL = "https://rate-limit.invalid";
   process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
   try {
-    globalThis.fetch = async () => new Response("service unavailable", { status: 503 });
+    globalThis.fetch = async () => { throw new TypeError("network failure"); };
     await assert.rejects(() => checkLoginRateLimit("network-failure-test"));
+    globalThis.fetch = async () => new Response("service unavailable", { status: 503 });
+    await assert.rejects(() => checkLoginRateLimit("http-failure-test"));
     globalThis.fetch = async () => new Response(JSON.stringify({ result: ["not-a-count", 900] }), { status: 200 });
     await assert.rejects(() => checkLoginRateLimit("malformed-response-test"));
+  } finally {
+    globalThis.fetch = previousFetch;
+    setNodeEnv(previousNodeEnv);
+    if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+    else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+    if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+  }
+});
+
+test("Upstash EVAL uses the atomic fixed-window command format", async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const previousFetch = globalThis.fetch;
+  setNodeEnv("production");
+  process.env.UPSTASH_REDIS_REST_URL = "https://rate-limit.invalid";
+  process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
+  let request: { url: string; init?: RequestInit } | undefined;
+  globalThis.fetch = async (url, init) => {
+    request = { url: String(url), init };
+    return new Response(JSON.stringify({ result: [10, 899] }), { status: 200 });
+  };
+  try {
+    assert.deepEqual(await checkLoginRateLimit("successful-request-test"), {
+      allowed: true,
+      configured: true,
+      retryAfterSeconds: 899,
+    });
+    assert.equal(request?.url, "https://rate-limit.invalid");
+    const command = JSON.parse(String(request?.init?.body)) as unknown[];
+    assert.equal(command[0], "EVAL");
+    assert.match(String(command[1]), /INCR/);
+    assert.deepEqual(command.slice(2), [
+      "1",
+      "horizon:login:successful-request-test",
+      "900",
+    ]);
+  } finally {
+    globalThis.fetch = previousFetch;
+    setNodeEnv(previousNodeEnv);
+    if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+    else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+    if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+  }
+});
+
+test("Upstash fixed-window responses block after ten attempts", async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const previousFetch = globalThis.fetch;
+  setNodeEnv("production");
+  process.env.UPSTASH_REDIS_REST_URL = "https://rate-limit.invalid";
+  process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
+  let count = 0;
+  globalThis.fetch = async () => new Response(JSON.stringify({ result: [++count, 900] }), { status: 200 });
+  try {
+    const results = await Promise.all(Array.from({ length: 11 }, () => checkLoginRateLimit("upstash-block-test")));
+    assert.equal(results.filter((result) => result.allowed).length, 10);
+    assert.deepEqual(results[10], { allowed: false, configured: true, retryAfterSeconds: 900 });
   } finally {
     globalThis.fetch = previousFetch;
     setNodeEnv(previousNodeEnv);
