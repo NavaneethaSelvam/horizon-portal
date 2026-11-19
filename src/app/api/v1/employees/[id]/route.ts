@@ -1,89 +1,30 @@
 
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-import { prisma } from "@/lib/server";
-
-const SESSION_COOKIE = "horizon_session";
-
-function getSessionSecret() {
-  const secret = process.env.SESSION_SECRET;
-
-  if (!secret || secret.length < 32) {
-    throw new Error("SESSION_SECRET is not configured correctly.");
-  }
-
-  return new TextEncoder().encode(secret);
-}
+import { forbidden, getUser, prisma, unauthorized } from "@/lib/server";
+import { idSchema, validationError } from "@/lib/validation";
+import { securityEvent } from "@/lib/security";
 
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 1. Verify the login session
-    const token = request.cookies.get(SESSION_COOKIE)?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: "Authentication required." },
-        { status: 401 }
-      );
-    }
-
-    const { payload } = await jwtVerify(token, getSessionSecret());
-
-    if (
-      typeof payload.sub !== "string" ||
-      typeof payload.role !== "string"
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Invalid session." },
-        { status: 401 }
-      );
-    }
-
-    // 2. Confirm the user is still active
-    const user = await prisma.demoUser.findUnique({
-      where: { username: payload.sub },
-      select: {
-        username: true,
-        role: true,
-        is_active: true,
-        employee_id: true,
-      },
-    });
-
-    const allowedRoles = ["ADMIN", "HR", "MANAGER", "EMPLOYEE"];
-
-    if (
-      !user ||
-      !user.is_active ||
-      user.role !== payload.role ||
-      !user.employee_id ||
-      !allowedRoles.includes(user.role ?? "")
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Invalid session." },
-        { status: 401 }
-      );
-    }
-
-    const employeeAccount = await prisma.employee.findUnique({ where: { employee_id: user.employee_id }, select: { is_active: true } });
-    if (!employeeAccount?.is_active) return NextResponse.json({ success: false, message: "Invalid session." }, { status: 401 });
-
-    // 3. Read the requested employee ID
+    const user = await getUser(request);
+    if (!user) return unauthorized();
     const { id } = await context.params;
-
-    if (!id || id.length > 100) {
-      return NextResponse.json(
-        { success: false, message: "Invalid employee ID." },
-        { status: 400 }
-      );
+    const parsedId = idSchema.safeParse(id);
+    if (!parsedId.success) return validationError("Invalid employee ID.");
+    const canViewAny = user.role === "ADMIN" || user.role === "HR";
+    const isSelf = user.employeeId === parsedId.data;
+    const isDirectReport = user.role === "MANAGER" && Boolean(await prisma.employee.findFirst({ where: { employee_id: parsedId.data, manager_id: user.employeeId }, select: { employee_id: true } }));
+    if (!canViewAny && !isSelf && !isDirectReport) {
+      securityEvent("forbidden_employee_profile_access", { actorEmployeeId: user.employeeId, targetEmployeeId: parsedId.data, role: user.role });
+      return forbidden();
     }
 
     // 4. Return only approved employee fields
     const employee = await prisma.employee.findUnique({
-      where: { employee_id: id },
+      where: { employee_id: parsedId.data },
       select: {
         employee_id: true,
         full_name: true,

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { prisma } from "@/lib/server";
+import { pageQuerySchema, validationError } from "@/lib/validation";
 
 const SESSION_COOKIE = "horizon_session";
 
@@ -67,24 +68,17 @@ export async function GET(request: NextRequest) {
     if (!employeeAccount?.is_active) return NextResponse.json({ success: false, message: "Your session is no longer valid." }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
-
-    const search = (searchParams.get("search") ?? "").trim().slice(0, 100);
-    const departmentId = (
-      searchParams.get("department") ?? ""
-    ).trim().slice(0, 100);
-
-    const requestedPage = Number(searchParams.get("page") ?? "1");
-    const requestedLimit = Number(searchParams.get("limit") ?? "10");
-
-    const page =
-      Number.isInteger(requestedPage) && requestedPage > 0
-        ? requestedPage
-        : 1;
-
-    const limit =
-      Number.isInteger(requestedLimit) && requestedLimit > 0
-        ? Math.min(requestedLimit, 50)
-        : 10;
+    const parsed = pageQuerySchema.safeParse({
+      search: searchParams.get("search") ?? undefined,
+      department: searchParams.get("department") ?? undefined,
+      page: searchParams.get("page") ?? undefined,
+      limit: searchParams.get("limit") ?? undefined,
+    });
+    if (!parsed.success) return validationError("Invalid employee directory filters.");
+    const search = parsed.data.search ?? "";
+    const departmentId = parsed.data.department ?? "";
+    const page = parsed.data.page ?? 1;
+    const limit = Math.min(parsed.data.limit ?? 10, 50);
 
     
 const where = {

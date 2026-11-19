@@ -7,6 +7,7 @@ import {
   type AnomalyInput,
   type AttritionInput,
 } from "@/lib/ai-insights-rules";
+import { validationError } from "@/lib/validation";
 
 function errorResponse(message: string, status: number) {
   return NextResponse.json({ success: false, message }, { status });
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
 
   const requestedDepartmentId =
     new URL(request.url).searchParams.get("departmentId")?.trim() || null;
+  if (requestedDepartmentId && requestedDepartmentId.length > 100) return validationError("Invalid department ID.");
 
   try {
     const departments = await prisma.department.findMany({

@@ -6,6 +6,7 @@ import {
   prisma,
   unauthorized,
 } from "@/lib/server";
+import { monthQuerySchema, validationError } from "@/lib/validation";
 
 const currentMonth = () => new Date().toISOString().slice(0, 7);
 
@@ -19,14 +20,9 @@ export async function GET(request: NextRequest) {
   }
 
   const requestedMonth = new URL(request.url).searchParams.get("month");
-  const month = requestedMonth ?? currentMonth();
-
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-    return NextResponse.json(
-      { success: false, message: "Month must use YYYY-MM format." },
-      { status: 400 },
-    );
-  }
+  const monthInput = monthQuerySchema.safeParse({ month: requestedMonth ?? undefined });
+  if (!monthInput.success) return validationError("Month must use YYYY-MM format.");
+  const month = monthInput.data.month ?? currentMonth();
 
   try {
     let employeeIds: string[] | undefined;

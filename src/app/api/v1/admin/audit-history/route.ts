@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forbidden, getUser, prisma, unauthorized } from "@/lib/server";
+import { pageQuerySchema, validationError } from "@/lib/validation";
 
 const pageSizeDefault = 20;
 const pageSizeMaximum = 100;
@@ -41,12 +42,10 @@ export async function GET(request: NextRequest) {
   const employeeId = (params.get("employee_id") ?? "").trim().slice(0, 100);
   const action = (params.get("action") ?? "").trim().slice(0, 50);
   const field = (params.get("field") ?? "").trim().slice(0, 100);
-  const pageValue = Number(params.get("page") || 1);
-  const limitValue = Number(params.get("limit") || pageSizeDefault);
-  const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
-  const limit = Number.isInteger(limitValue) && limitValue > 0
-    ? Math.min(pageSizeMaximum, limitValue)
-    : pageSizeDefault;
+  const pageInput = pageQuerySchema.safeParse({ page: params.get("page") ?? undefined, limit: params.get("limit") ?? undefined });
+  if (!pageInput.success) return validationError("Invalid audit history pagination.");
+  const page = pageInput.data.page ?? 1;
+  const limit = Math.min(pageInput.data.limit ?? pageSizeDefault, pageSizeMaximum);
   const where = {
     ...(employeeId ? { employee_id: employeeId } : {}),
     ...(action ? { action } : {}),

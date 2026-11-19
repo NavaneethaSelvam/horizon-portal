@@ -8,6 +8,7 @@ import {
   isSharedEmployeeNameQuestion,
 } from "@/lib/assistant-rules";
 import { getUser, prisma, unauthorized } from "@/lib/server";
+import { assistantSchema, validationError } from "@/lib/validation";
 
 const fallbackAnswer =
   "I couldn't find that in the HR help topics. Please contact HR if you need more help.";
@@ -33,15 +34,9 @@ export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) return unauthorized();
 
-  const body: unknown = await request.json().catch(() => null);
-  const question =
-    typeof body === "object" && body !== null && "question" in body &&
-    typeof body.question === "string"
-      ? body.question.trim()
-      : "";
-  if (!question || question.length > 500) {
-    return jsonError("Enter a question of 1 to 500 characters.", 400);
-  }
+  const input = assistantSchema.safeParse(await request.json().catch(() => null));
+  if (!input.success) return validationError("Enter a question of 1 to 500 characters.");
+  const question = input.data.question;
 
   try {
     if (isSharedEmployeeNameQuestion(question)) {

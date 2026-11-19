@@ -7,6 +7,7 @@ import {
   unauthorized,
 } from "@/lib/server";
 import { TASK_BOARD_STATUSES } from "@/lib/task-board-rules";
+import { idSchema, taskUpdateSchema, validationError } from "@/lib/validation";
 
 type TaskIdContext = { params: Promise<{ task_id: string }> };
 
@@ -48,31 +49,18 @@ export async function PATCH(request: NextRequest, context: TaskIdContext) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json(
-      { success: false, message: "Request body must be valid JSON." },
-      { status: 400 },
-    );
+    return validationError("Request body must be valid JSON.");
   }
-  if (
-    typeof body !== "object" ||
-    body === null ||
-    !("expectedVersion" in body) ||
-    !("status" in body) ||
-    typeof body.expectedVersion !== "number" ||
-    !Number.isSafeInteger(body.expectedVersion) ||
-    body.expectedVersion < 0 ||
-    typeof body.status !== "string" ||
-    !TASK_BOARD_STATUSES.includes(body.status as (typeof TASK_BOARD_STATUSES)[number])
-  ) {
-    return NextResponse.json(
-      { success: false, message: "A valid status and expectedVersion are required." },
-      { status: 400 },
-    );
-  }
-  const expectedVersion = body.expectedVersion;
-  const status = body.status;
+  const input = taskUpdateSchema.safeParse({
+    status: typeof body === "object" && body !== null && "status" in body ? (body as { status?: unknown }).status : undefined,
+    version: typeof body === "object" && body !== null && "expectedVersion" in body ? (body as { expectedVersion?: unknown }).expectedVersion : undefined,
+  });
+  if (!input.success || !input.data.status || !TASK_BOARD_STATUSES.includes(input.data.status as (typeof TASK_BOARD_STATUSES)[number])) return validationError("A valid status and expectedVersion are required.");
+  const expectedVersion = input.data.version;
+  const status = input.data.status;
 
   const { task_id } = await context.params;
+  if (!idSchema.safeParse(task_id).success) return validationError("Invalid task ID.");
   try {
     const current = await prisma.task.findFirst({
       where: { AND: [{ task_id }, access.taskWhere] },

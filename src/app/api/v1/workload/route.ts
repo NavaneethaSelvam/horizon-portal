@@ -7,6 +7,7 @@ import {
   unauthorized,
 } from "@/lib/server";
 import { calculateWorkload, type WorkloadSprint, type WorkloadTask } from "@/lib/workload-rules";
+import { idSchema, validationError } from "@/lib/validation";
 
 function failure(message: string, status: number) {
   return NextResponse.json({ success: false, message }, { status });
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
   const params = new URL(request.url).searchParams;
   const requestedSprintId = params.get("sprintId")?.trim() || null;
   const requestedTeamId = params.get("teamId")?.trim() || null;
+  if ((requestedSprintId && !idSchema.safeParse(requestedSprintId).success) || (requestedTeamId && !idSchema.safeParse(requestedTeamId).success)) return validationError("Invalid workload filters.");
 
   try {
     const teams = await prisma.team.findMany({

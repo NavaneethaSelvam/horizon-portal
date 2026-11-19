@@ -12,6 +12,9 @@ const dbName = `.phase2-integration-${process.pid}-${Date.now()}.db`;
 const dbFile = path.join(process.cwd(), "prisma", dbName);
 process.env.DATABASE_URL = `file:./${dbName}`;
 process.env.SESSION_SECRET = secret;
+Object.defineProperty(process.env, "NODE_ENV", { value: "test", writable: true, configurable: true, enumerable: true });
+delete process.env.UPSTASH_REDIS_REST_URL;
+delete process.env.UPSTASH_REDIS_REST_TOKEN;
 
 let db: import("@prisma/client").PrismaClient;
 let api: {
@@ -217,40 +220,46 @@ test("assistant personal responses are scoped to the signed-in employee and othe
 });
 
 test("all four roles can authenticate; invalid credentials are rejected and logout clears the cookie", async () => {
-  for (const [username, role] of [["a", "EMPLOYEE"], ["m1", "MANAGER"], ["hr", "HR"], ["admin", "ADMIN"]]) {
-    const response = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ result: [1, 900] }), { status: 200 });
+  try {
+    for (const [username, role] of [["a", "EMPLOYEE"], ["m1", "MANAGER"], ["hr", "HR"], ["admin", "ADMIN"]]) {
+      const response = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ username, password: "IntegrationPass123!" }),
+      }));
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).user.role, role);
+      assert.match(response.headers.get("set-cookie") ?? "", /HttpOnly/i);
+    }
+    const wrongPassword = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ username, password: "IntegrationPass123!" }),
+      body: JSON.stringify({ username: "a", password: "wrong" }),
     }));
-    assert.equal(response.status, 200);
-    assert.equal((await response.json()).user.role, role);
-    assert.match(response.headers.get("set-cookie") ?? "", /HttpOnly/i);
+    assert.equal(wrongPassword.status, 401);
+    const missingFields = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username: "a" }),
+    }));
+    assert.equal(missingFields.status, 422);
+    await db.demoUser.create({
+      data: {
+        username: "orphan",
+        employee_id: null,
+        role: "EMPLOYEE",
+        password_hash: await bcrypt.hash("IntegrationPass123!", 4),
+      },
+    });
+    const unlinkedAccount = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ username: "orphan", password: "IntegrationPass123!" }),
+    }));
+    assert.equal(unlinkedAccount.status, 401);
+    assert.equal((await api.me.GET(await request("a", "EMPLOYEE"))).status, 200);
+    const logout = await api.logout.POST();
+    assert.match(logout.headers.get("set-cookie") ?? "", /Max-Age=0/i);
+  } finally {
+    globalThis.fetch = originalFetch;
   }
-  const wrongPassword = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: "a", password: "wrong" }),
-  }));
-  assert.equal(wrongPassword.status, 401);
-  const missingFields = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ username: "a" }),
-  }));
-  assert.equal(missingFields.status, 400);
-  await db.demoUser.create({
-    data: {
-      username: "orphan",
-      employee_id: null,
-      role: "EMPLOYEE",
-      password_hash: await bcrypt.hash("IntegrationPass123!", 4),
-    },
-  });
-  const unlinkedAccount = await api.login.POST(new NextRequest("http://localhost/api/v1/auth/login", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ username: "orphan", password: "IntegrationPass123!" }),
-  }));
-  assert.equal(unlinkedAccount.status, 401);
-  assert.equal((await api.me.GET(await request("a", "EMPLOYEE"))).status, 200);
-  const logout = await api.logout.POST();
-  assert.match(logout.headers.get("set-cookie") ?? "", /Max-Age=0/i);
 });
 
 test("employee profile and directory APIs return safe, authenticated data", async () => {
@@ -262,8 +271,11 @@ test("employee profile and directory APIs return safe, authenticated data", asyn
   assert.equal(employee.manager.full_name, "Manager One");
   assert.equal(employee.manager.manager.full_name, "Manager Two");
   assert.equal(Object.keys(employee).some((key) => /salary|pay|wage/i.test(key)), false);
-  assert.equal((await api.employeeDetail.GET(await request("a", "EMPLOYEE"), { params: Promise.resolve({ id: "E-OUT" }) })).status, 200);
-  assert.equal((await api.employeeDetail.GET(await request("a", "EMPLOYEE"), { params: Promise.resolve({ id: "MISSING" }) })).status, 404);
+  assert.equal((await api.employeeDetail.GET(await request("a", "EMPLOYEE"), { params: Promise.resolve({ id: "E-B" }) })).status, 403);
+  assert.equal((await api.employeeDetail.GET(await request("m1", "MANAGER"), { params: Promise.resolve({ id: "E-A" }) })).status, 200);
+  assert.equal((await api.employeeDetail.GET(await request("m1", "MANAGER"), { params: Promise.resolve({ id: "E-OUT" }) })).status, 403);
+  assert.equal((await api.employeeDetail.GET(await request("a", "EMPLOYEE"), { params: Promise.resolve({ id: "MISSING" }) })).status, 403);
+  assert.equal((await api.employeeDetail.GET(await request("admin", "ADMIN"), { params: Promise.resolve({ id: "MISSING" }) })).status, 404);
 
   const directory = await api.directory.GET(await request("a", "EMPLOYEE"));
   assert.equal(directory.status, 200);
@@ -398,7 +410,7 @@ test("task board listing enforces role scope, combines filters and paginates", a
     undefined,
     "http://localhost/api/v1/tasks?pageSize=101",
   ));
-  assert.equal(invalidPageSize.status, 400);
+  assert.equal(invalidPageSize.status, 422);
 });
 
 test("workload API reuses Admin/Manager task scope for filters, leave and capacity", async () => {
@@ -613,7 +625,7 @@ test("task status PATCH persists changes and uses versioned conflict reconciliat
     await request("admin", "ADMIN", "PATCH", { status: "Done" }),
     { params: Promise.resolve({ task_id: "TASK-1" }) },
   );
-  assert.equal(invalidVersion.status, 400);
+  assert.equal(invalidVersion.status, 422);
 
   const persisted = await api.task.PATCH(
     await request("admin", "ADMIN", "PATCH", { status: "In Progress", expectedVersion: 0 }),
@@ -672,7 +684,7 @@ test("managers see direct reports and all assigned teams, and cannot decide outs
   assert.ok((await hrQueue.json()).requests.some((row: { leave_request_id: string }) => row.leave_request_id === "LR-OUT"));
   const monthly = await api.approvals.GET(await request("m1", "MANAGER", "GET", undefined, "http://localhost/api/v1/approvals?month=2026-10"));
   assert.deepEqual((await monthly.json()).attendance.map((row: { employee_id: string; period_end_date: string }) => `${row.employee_id}:${row.period_end_date}`), ["E-A:2026-10-31"]);
-  assert.equal((await api.approvals.GET(await request("m1", "MANAGER", "GET", undefined, "http://localhost/api/v1/approvals?month=2026-99"))).status, 400);
+  assert.equal((await api.approvals.GET(await request("m1", "MANAGER", "GET", undefined, "http://localhost/api/v1/approvals?month=2026-99"))).status, 422);
   const outside = await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-OUT", decision: "approve" }));
   assert.equal(outside.status, 403);
   const self = await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-OWN", decision: "approve" }));
@@ -695,7 +707,7 @@ test("attendance is month-filtered and scoped for employees, managers, HR and Ad
   assert.deepEqual((await otherMonth.json()).attendance.map((row: { period_end_date: string }) => row.period_end_date), ["2026-11-30"]);
   const noRecords = await api.attendance.GET(await request("b", "EMPLOYEE", "GET", undefined, `${endpoint}?month=2026-12`));
   assert.deepEqual((await noRecords.json()).attendance, []);
-  assert.equal((await api.attendance.GET(await request("a", "EMPLOYEE", "GET", undefined, `${endpoint}?month=2026-99`))).status, 400);
+  assert.equal((await api.attendance.GET(await request("a", "EMPLOYEE", "GET", undefined, `${endpoint}?month=2026-99`))).status, 422);
 
   await db.attendanceMonthly.create({
     data: { employee_id: "E-T1", period_end_date: "2026-10-31", scheduled_days: 22, present_days: 18 },
@@ -722,13 +734,13 @@ test("attendance is month-filtered and scoped for employees, managers, HR and Ad
 test("leave applications reserve balance, reject overlap/insufficient balance, and unsupported paid leave is safe", async () => {
   const endpoint = "http://localhost/api/v1/leave";
   const missingType = await api.leave.POST(await request("a", "EMPLOYEE", "POST", { start_date: "2026-12-10", end_date: "2026-12-10", reason: "Trip" }, endpoint));
-  assert.equal(missingType.status, 400);
+  assert.equal(missingType.status, 422);
   assert.match((await missingType.json()).message, /leave type/i);
-  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-02-30", end_date: "2026-03-01", reason: "Trip" }, endpoint))).status, 400);
-  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-11", end_date: "2026-12-10", reason: "Trip" }, endpoint))).status, 400);
-  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-10", reason: "   " }, endpoint))).status, 400);
-  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-10", reason: "x".repeat(1001) }, endpoint))).status, 400);
-  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "UNKNOWN", start_date: "2026-12-10", end_date: "2026-12-10", reason: "Trip" }, endpoint))).status, 400);
+  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-02-30", end_date: "2026-03-01", reason: "Trip" }, endpoint))).status, 422);
+  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-11", end_date: "2026-12-10", reason: "Trip" }, endpoint))).status, 422);
+  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-10", reason: "   " }, endpoint))).status, 422);
+  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-10", reason: "x".repeat(1001) }, endpoint))).status, 422);
+  assert.equal((await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "UNKNOWN", start_date: "2026-12-10", end_date: "2026-12-10", reason: "Trip" }, endpoint))).status, 422);
   const submitted = await api.leave.POST(await request("a", "EMPLOYEE", "POST", { leave_type_code: "CL", start_date: "2026-12-10", end_date: "2026-12-11", reason: "Trip" }));
   assert.equal(submitted.status, 201);
   const created = (await submitted.json()).request;
@@ -824,7 +836,7 @@ test("approve/reject decisions update balances, notify once, and reject repeated
   assert.equal(await db.notification.count({ where: { user_id: "E-A", idempotency_key: "leave-decision:LR-A" } }), 1);
   assert.equal((await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-A", decision: "approve" }))).status, 409);
   assert.equal((await db.notification.count({ where: { user_id: "E-A", idempotency_key: "leave-decision:LR-A" } })), 1);
-  assert.equal((await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-REJECT", decision: "reject" }))).status, 400);
+  assert.equal((await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-REJECT", decision: "reject" }))).status, 422);
   assert.equal((await api.approvals.POST(await request("m1", "MANAGER", "POST", { request_id: "LR-REJECT", decision: "reject", reason: "Coverage needs" }))).status, 200);
   assert.equal((await db.leaveBalance.findFirstOrThrow({ where: { employee_id: "E-A" } })).pending_days, 2);
   assert.equal(await db.notification.count({ where: { user_id: "E-A", idempotency_key: "leave-decision:LR-REJECT" } }), 1);
@@ -950,11 +962,11 @@ test("Task 6 to 10 flow: employee applies, manager approves, balance and notific
 
 test("HR create and edit operations write per-field audit records", async () => {
   const invalid = await api.admin.POST(await request("hr", "HR", "POST", { employee_id: "E-BAD", full_name: "", work_email: "bad" }));
-  assert.equal(invalid.status, 400);
+  assert.equal(invalid.status, 422);
   const invalidWorkMode = await api.admin.POST(await request("hr", "HR", "POST", { employee_id: "E-BAD-MODE", full_name: "Invalid Mode", work_email: "bad-mode@example.test", work_mode: 123 }));
-  assert.equal(invalidWorkMode.status, 400);
+  assert.equal(invalidWorkMode.status, 422);
   const invalidEmploymentType = await api.admin.POST(await request("hr", "HR", "POST", { employee_id: "E-BAD-TYPE", full_name: "Invalid Type", work_email: "bad-type@example.test", employment_type: "x".repeat(101) }));
-  assert.equal(invalidEmploymentType.status, 400);
+  assert.equal(invalidEmploymentType.status, 422);
   const created = await api.admin.POST(await request("hr", "HR", "POST", { employee_id: "E-NEW", full_name: "New Person", work_email: "new@example.test", department_id: "D-TEST", work_mode: "Hybrid", employment_type: "Permanent" }));
   assert.equal(created.status, 201);
   const createdData = (await created.json()).data;
@@ -976,8 +988,8 @@ test("HR create and edit operations write per-field audit records", async () => 
   const editedPersisted = await db.employee.findUniqueOrThrow({ where: { employee_id: "E-NEW" } });
   assert.equal(editedPersisted.work_mode, "Remote");
   assert.equal(editedPersisted.employment_type, "Contractor");
-  assert.equal((await api.employee.PATCH(await request("hr", "HR", "PATCH", { work_mode: 42 }), { params: Promise.resolve({ id: "E-NEW" }) })).status, 400);
-  assert.equal((await api.employee.PATCH(await request("hr", "HR", "PATCH", { employment_type: "x".repeat(101) }), { params: Promise.resolve({ id: "E-NEW" }) })).status, 400);
+  assert.equal((await api.employee.PATCH(await request("hr", "HR", "PATCH", { work_mode: 42 }), { params: Promise.resolve({ id: "E-NEW" }) })).status, 422);
+  assert.equal((await api.employee.PATCH(await request("hr", "HR", "PATCH", { employment_type: "x".repeat(101) }), { params: Promise.resolve({ id: "E-NEW" }) })).status, 422);
   assert.equal((await api.employee.PATCH(await request("a", "EMPLOYEE", "PATCH", { work_mode: "Remote" }), { params: Promise.resolve({ id: "E-NEW" }) })).status, 403);
   assert.equal((await api.admin.POST(await request("a", "EMPLOYEE", "POST", { employee_id: "E-DENIED", full_name: "Denied", work_email: "denied@example.test", work_mode: "Remote" }))).status, 403);
   const createAudit = await db.auditLog.findFirstOrThrow({ where: { employee_id: "E-NEW", action: "CREATE" } });

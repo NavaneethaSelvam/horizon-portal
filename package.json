@@ -7,7 +7,8 @@
     "build": "node scripts/build.mjs",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node --import tsx --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts tests/task-board-rules.test.ts tests/workload-rules.test.ts tests/ai-insights.test.ts tests/assistant.test.ts tests/prisma-schemas.test.ts",
+    "pretest": "prisma generate --schema prisma/schema.prisma",
+    "test": "node --require ./scripts/test-node-preload.cjs --import tsx --test-concurrency=1 --test tests/phase2-rules.test.ts tests/phase2-api.test.ts tests/payroll.test.ts tests/finance.test.ts tests/task-board-rules.test.ts tests/workload-rules.test.ts tests/ai-insights.test.ts tests/assistant.test.ts tests/prisma-schemas.test.ts tests/security-hardening.test.ts",
     "generate:local": "prisma generate --schema prisma/schema.prisma",
     "generate:production": "prisma generate --schema prisma/postgresql/schema.prisma",
     "seed": "tsx prisma/seed.ts",
@@ -26,7 +27,8 @@
     "next-themes": "0.4.6",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "tailwind-merge": "3.3.1"
+    "tailwind-merge": "3.3.1",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.4.2",

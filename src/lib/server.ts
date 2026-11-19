@@ -1,6 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
+import { securityEvent } from "@/lib/security";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
@@ -34,8 +35,14 @@ export async function getUserFromToken(token: string | undefined): Promise<Sessi
   return { username: user.username, employeeId: user.employee_id, role: user.role ?? "" };
 }
 
-export function unauthorized() { return NextResponse.json({ success: false, message: "Authentication required." }, { status: 401 }); }
-export function forbidden() { return NextResponse.json({ success: false, message: "You do not have permission to perform this action." }, { status: 403 }); }
+export function unauthorized() {
+  securityEvent("unauthorized_api_access", {});
+  return NextResponse.json({ success: false, message: "Authentication required." }, { status: 401 });
+}
+export function forbidden() {
+  securityEvent("forbidden_api_access", {});
+  return NextResponse.json({ success: false, message: "You do not have permission to perform this action." }, { status: 403 });
+}
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 

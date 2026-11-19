@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser, notify, prisma, unauthorized } from "@/lib/server";
+import { idSchema, validationError } from "@/lib/validation";
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const user = await getUser(request);
   if (!user) return unauthorized();
   const { id } = await context.params;
+  if (!idSchema.safeParse(id).success) return validationError("Invalid leave request ID.");
   try {
     await prisma.$transaction(async (tx) => {
       const item = await tx.leaveRequest.findUnique({ where: { leave_request_id: id } });

@@ -11,6 +11,7 @@ import {
   hasSufficientBalance,
   isIsoDate,
 } from "@/lib/phase2-rules";
+import { leaveCreateSchema, validationError } from "@/lib/validation";
 
 const currentBalance = (
   balance: {
@@ -94,47 +95,25 @@ export async function POST(request: NextRequest) {
   const user = await getUser(request);
   if (!user) return unauthorized();
 
-  const body = await request.json().catch(() => null);
-
-  const code =
-    typeof body?.leave_type_code === "string"
-      ? body.leave_type_code.trim()
-      : "";
-
-  const start =
-    typeof body?.start_date === "string"
-      ? body.start_date
-      : "";
-
-  const end =
-    typeof body?.end_date === "string"
-      ? body.end_date
-      : "";
-
-  const reason =
-    typeof body?.reason === "string"
-      ? body.reason.trim()
-      : "";
-
-  if (!code) {
-    return jsonError("Choose a leave type.", 400);
-  }
+  const input = leaveCreateSchema.safeParse(await request.json().catch(() => null));
+  if (!input.success) return validationError("Leave type, dates and reason are required.");
+  const { leave_type_code: code, start_date: start, end_date: end, reason } = input.data;
 
   if (!isIsoDate(start)) {
-    return jsonError("Enter a valid start date.", 400);
+    return validationError("Enter a valid start date.");
   }
 
   if (!isIsoDate(end) || end < start) {
     return jsonError(
       "End date must be on or after the start date.",
-      400,
+      422,
     );
   }
 
   if (!reason || reason.length > 1000) {
     return jsonError(
       "Enter a reason of 1 to 1000 characters.",
-      400,
+      422,
     );
   }
 
@@ -144,7 +123,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!type) {
-      return jsonError("Invalid leave type.", 400);
+      return validationError("Invalid leave type.");
     }
 
     // Detect an identical pending request first.
@@ -192,13 +171,13 @@ export async function POST(request: NextRequest) {
         holidays.map((holiday) => holiday.holiday_date),
       );
     } catch {
-      return jsonError("Choose a valid date range.", 400);
+      return validationError("Choose a valid date range.");
     }
 
     if (days <= 0) {
       return jsonError(
         "The selected period contains no working days.",
-        400,
+        422,
       );
     }
 

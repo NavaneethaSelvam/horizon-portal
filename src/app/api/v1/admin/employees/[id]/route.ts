@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getUser, prisma, unauthorized, forbidden } from "@/lib/server";
 import { isIsoDate } from "@/lib/phase2-rules";
+import { employeeUpdateSchema, idSchema, validationError } from "@/lib/validation";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -10,8 +11,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (!actor) return unauthorized();
   if (!["ADMIN", "HR"].includes(actor.role)) return forbidden();
   const { id } = await params;
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object" || Array.isArray(body)) return NextResponse.json({ success: false, message: "Invalid employee data." }, { status: 400 });
+  if (!idSchema.safeParse(id).success) return validationError("Invalid employee ID.");
+  const bodyInput = employeeUpdateSchema.safeParse(await request.json().catch(() => null));
+  if (!bodyInput.success) return validationError("Invalid employee data.");
+  const body = bodyInput.data;
 
   const allowed = ["full_name", "work_email", "department_id", "role_id", "manager_id", "work_location", "work_mode", "employment_type", "hire_date", "is_active"] as const;
   const data: Record<string, unknown> = {};
@@ -19,32 +22,32 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     if (!(key in body)) continue;
     const value = (body as Record<string, unknown>)[key];
     if (key === "is_active") {
-      if (typeof value !== "boolean") return NextResponse.json({ success: false, message: "is_active must be boolean." }, { status: 400 });
+  if (typeof value !== "boolean") return validationError("is_active must be boolean.");
       data[key] = value;
       continue;
     }
-    if (value !== null && typeof value !== "string") return NextResponse.json({ success: false, message: `Invalid ${key}.` }, { status: 400 });
+    if (value !== null && typeof value !== "string") return validationError(`Invalid ${key}.`);
     const trimmed = typeof value === "string" ? value.trim() : null;
     const max = key === "full_name" ? 200 : key === "work_email" ? 254 : key === "hire_date" ? 10 : 100;
-    if (trimmed && trimmed.length > max) return NextResponse.json({ success: false, message: `${key} is too long.` }, { status: 400 });
-    if (key === "full_name" && !trimmed) return NextResponse.json({ success: false, message: "Name is required." }, { status: 400 });
-    if (key === "work_email" && (!trimmed || !emailPattern.test(trimmed))) return NextResponse.json({ success: false, message: "A valid work email is required." }, { status: 400 });
-    if (key === "hire_date" && trimmed && !isIsoDate(trimmed)) return NextResponse.json({ success: false, message: "Hire date must be a valid date in YYYY-MM-DD format." }, { status: 400 });
+    if (trimmed && trimmed.length > max) return validationError(`${key} is too long.`);
+    if (key === "full_name" && !trimmed) return validationError("Name is required.");
+    if (key === "work_email" && (!trimmed || !emailPattern.test(trimmed))) return validationError("A valid work email is required.");
+    if (key === "hire_date" && trimmed && !isIsoDate(trimmed)) return validationError("Hire date must be a valid date in YYYY-MM-DD format.");
     data[key] = key === "work_email" && trimmed ? trimmed.toLowerCase() : trimmed;
   }
-  if (!Object.keys(data).length) return NextResponse.json({ success: false, message: "No supported changes provided." }, { status: 400 });
-  if (data.manager_id === id) return NextResponse.json({ success: false, message: "An employee cannot manage themselves." }, { status: 400 });
+  if (!Object.keys(data).length) return validationError("No supported changes provided.");
+  if (data.manager_id === id) return validationError("An employee cannot manage themselves.");
   const [department, role, manager] = await Promise.all([
     typeof data.department_id === "string" ? prisma.department.findUnique({ where: { department_id: data.department_id } }) : null,
     typeof data.role_id === "string" ? prisma.role.findUnique({ where: { role_id: data.role_id } }) : null,
     typeof data.manager_id === "string" ? prisma.employee.findUnique({ where: { employee_id: data.manager_id } }) : null,
   ]);
-  if (typeof data.department_id === "string" && !department || typeof data.role_id === "string" && !role || typeof data.manager_id === "string" && !manager) return NextResponse.json({ success: false, message: "Department, role or manager reference does not exist." }, { status: 400 });
+  if (typeof data.department_id === "string" && !department || typeof data.role_id === "string" && !role || typeof data.manager_id === "string" && !manager) return validationError("Department, role or manager reference does not exist.");
   if (typeof data.manager_id === "string") {
     const seen = new Set([id]);
     let current: string | null = data.manager_id;
     while (current) {
-      if (seen.has(current)) return NextResponse.json({ success: false, message: "This manager assignment would create a reporting cycle." }, { status: 400 });
+      if (seen.has(current)) return validationError("This manager assignment would create a reporting cycle.");
       seen.add(current);
       const nextManager: { manager_id: string | null } | null = await prisma.employee.findUnique({ where: { employee_id: current }, select: { manager_id: true } });
       current = nextManager?.manager_id ?? null;

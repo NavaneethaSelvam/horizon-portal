@@ -6,6 +6,7 @@ import {
   taskBoardAccess,
   unauthorized,
 } from "@/lib/server";
+import { validationError } from "@/lib/validation";
 
 const MAX_PAGE_SIZE = 100;
 
@@ -28,19 +29,20 @@ export async function GET(request: NextRequest) {
   if (page === null || pageSize === null || pageSize > MAX_PAGE_SIZE) {
     return NextResponse.json(
       { success: false, message: "Invalid page or pageSize. Page size must be at most 100." },
-      { status: 400 },
+      { status: 422 },
     );
   }
   const offset = (page - 1) * pageSize;
   if (!Number.isSafeInteger(offset)) {
     return NextResponse.json(
       { success: false, message: "Page is outside the supported range." },
-      { status: 400 },
+      { status: 422 },
     );
   }
 
   const teamId = params.get("teamId")?.trim() || null;
   const sprintId = params.get("sprintId")?.trim() || null;
+  if ((teamId && teamId.length > 100) || (sprintId && sprintId.length > 100)) return validationError("Invalid task filters.");
   const where = {
     AND: [
       access.taskWhere,

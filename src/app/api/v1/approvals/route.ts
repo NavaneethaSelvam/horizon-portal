@@ -8,6 +8,7 @@ import {
   unauthorized,
   forbidden,
 } from "@/lib/server";
+import { approvalSchema, monthQuerySchema, validationError } from "@/lib/validation";
 
 export async function GET(request: NextRequest) {
   const actor = await getUser(request);
@@ -18,17 +19,9 @@ export async function GET(request: NextRequest) {
     return forbidden();
   }
 
-  const month = new URL(request.url).searchParams.get("month");
-
-  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Month must use YYYY-MM format.",
-      },
-      { status: 400 }
-    );
-  }
+  const monthInput = monthQuerySchema.safeParse({ month: new URL(request.url).searchParams.get("month") ?? undefined });
+  if (!monthInput.success) return validationError("Month must use YYYY-MM format.");
+  const month = monthInput.data.month;
 
   // Managers can review only requests from their assigned employees.
   // Admin and HR retain their authorized broader access.
@@ -116,22 +109,10 @@ export async function POST(request: NextRequest) {
     return forbidden();
   }
 
-  const body = await request.json().catch(() => null);
-
-  if (
-    typeof body?.request_id !== "string" ||
-    !["approve", "reject"].includes(body?.decision)
-  ) {
-    return NextResponse.json(
-      { success: false, message: "Invalid decision." },
-      { status: 400 }
-    );
-  }
-
-  const reason =
-    typeof body.reason === "string"
-      ? body.reason.trim().slice(0, 1000)
-      : "";
+  const bodyInput = approvalSchema.safeParse(await request.json().catch(() => null));
+  if (!bodyInput.success) return validationError("A valid request ID, decision and reason are required.");
+  const body = bodyInput.data;
+  const reason = body.reason ?? "";
 
   if (body.decision === "reject" && !reason) {
     return NextResponse.json(
@@ -139,7 +120,7 @@ export async function POST(request: NextRequest) {
         success: false,
         message: "A rejection reason is required.",
       },
-      { status: 400 }
+      { status: 422 }
     );
   }
 

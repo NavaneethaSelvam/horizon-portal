@@ -19,10 +19,8 @@ if (isVercel) {
 }
 
 function run(args) {
-  const command = process.platform === "win32" ? "npx.cmd" : "npx";
-  const result = spawnSync(command, args, {
+  const result = spawnSync(process.execPath, args, {
     env,
-    shell: process.platform === "win32",
     stdio: "inherit",
   });
 
@@ -36,10 +34,13 @@ function run(args) {
   }
 }
 
-run(["prisma", "generate", "--schema", postgresSchema]);
+const prismaCli = "node_modules/prisma/build/index.js";
+const nextCli = "node_modules/next/dist/bin/next";
+
+run([prismaCli, "generate", "--schema", postgresSchema]);
 
 if (isVercel) {
-  run(["prisma", "migrate", "deploy", "--schema", postgresSchema]);
+  run([prismaCli, "migrate", "deploy", "--schema", postgresSchema]);
 }
 
-run(["next", "build"]);
+run([nextCli, "build"]);
