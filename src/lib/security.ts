@@ -85,12 +85,16 @@ export async function checkLoginRateLimit(key: string): Promise<RateLimitResult>
     }
     return { allowed: count <= MAX_ATTEMPTS, configured: true, retryAfterSeconds: ttl };
   } catch (error) {
-    if (error instanceof RateLimitUnavailableError) throw error;
+    if (error instanceof RateLimitUnavailableError) {
+      if (process.env.NODE_ENV !== "production") return localRateLimit(key);
+      throw error;
+    }
     securityEvent("login_rate_limit_unavailable", {
       reason: error instanceof DOMException && error.name === "TimeoutError"
         ? "upstash_timeout"
         : "upstash_network_error",
     });
+    if (process.env.NODE_ENV !== "production") return localRateLimit(key);
     throw new RateLimitUnavailableError();
   }
 }

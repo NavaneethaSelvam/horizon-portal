@@ -44,9 +44,9 @@ let api: {
 };
 
 before(async () => {
-  const python = process.platform === "win32" ? "python" : "python3";
   const bootstrap = path.join(process.cwd(), "tests", "bootstrap-migration-db.py");
-  execFileSync(python, [bootstrap, dbFile, path.join(process.cwd(), "prisma", "migrations")], { stdio: "pipe" });
+  const bootstrapRunner = path.join(process.cwd(), "scripts", "run-bootstrap-migration-db.cjs");
+  execFileSync(process.execPath, [bootstrapRunner, bootstrap, dbFile, path.join(process.cwd(), "prisma", "migrations")], { stdio: "pipe" });
   const cli = path.join(process.cwd(), "node_modules", "prisma", "build", "index.js");
   execFileSync(process.execPath, [cli, "migrate", "deploy"], { env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }, stdio: "pipe" });
   const { PrismaClient } = await import("@prisma/client");

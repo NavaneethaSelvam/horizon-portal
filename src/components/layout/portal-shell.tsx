@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -214,6 +214,7 @@ export function PortalShell({
   const [loadingUser, setLoadingUser] = useState(true);
   const [sessionError, setSessionError] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -305,6 +306,7 @@ if (!cancelled) {
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setMobileMenuOpen(false);
+        requestAnimationFrame(() => mobileMenuTriggerRef.current?.focus());
       }
     }
 
@@ -314,6 +316,11 @@ if (!cancelled) {
       window.removeEventListener("keydown", handleEscape);
     };
   }, [mobileMenuOpen]);
+
+  function closeMobileMenu() {
+    setMobileMenuOpen(false);
+    requestAnimationFrame(() => mobileMenuTriggerRef.current?.focus());
+  }
 
   async function handleLogout() {
     if (loggingOut) return;
@@ -526,7 +533,7 @@ if (!cancelled) {
           type="button"
           aria-label="Close navigation menu"
           tabIndex={-1}
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
           className="fixed inset-0 z-40 cursor-default bg-black/50 md:hidden"
         />
       )}
@@ -536,6 +543,7 @@ if (!cancelled) {
         id="mobile-navigation"
         aria-label="Mobile navigation"
         aria-hidden={!mobileMenuOpen}
+        inert={!mobileMenuOpen}
         className={[
           "fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col",
           "border-r border-border bg-surface shadow-xl transition-transform duration-200 md:hidden",
@@ -547,7 +555,7 @@ if (!cancelled) {
           <button
             type="button"
             aria-label="Close navigation"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
             className="mr-3 rounded-md p-2 hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <X className="size-5" />
@@ -564,7 +572,8 @@ if (!cancelled) {
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              onClick={() => setMobileMenuOpen((open) => !open)}
+              ref={mobileMenuTriggerRef}
+              onClick={() => mobileMenuOpen ? closeMobileMenu() : setMobileMenuOpen(true)}
               aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
               aria-controls="mobile-navigation"
               aria-expanded={mobileMenuOpen}
