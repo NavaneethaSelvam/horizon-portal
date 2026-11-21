@@ -18,6 +18,15 @@ end
 return { count, redis.call("TTL", KEYS[1]) }
 `;
 
+function isTask20E2ELocal() {
+  return (
+    process.env.TASK20_E2E_LOCAL_RATE_LIMIT === "1" &&
+    process.env.NODE_ENV === "production" &&
+    process.env.HOSTNAME === "127.0.0.1" &&
+    process.env.PORT === "3101"
+  );
+}
+
 function localRateLimit(key: string): RateLimitResult {
   const now = Date.now();
   const current = localAttempts.get(key);
@@ -32,6 +41,8 @@ function localRateLimit(key: string): RateLimitResult {
 }
 
 export async function checkLoginRateLimit(key: string): Promise<RateLimitResult> {
+  if (isTask20E2ELocal()) return localRateLimit(key);
+
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
