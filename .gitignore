@@ -41,3 +41,7 @@ next-env.d.ts
 # Local application logs
 next-startup.log
 server-log.txt
+
+# Playwright test artifacts
+/playwright-report/
+/test-results/
